@@ -1,29 +1,28 @@
 import express from 'express';
 import dotenv from 'dotenv';
 
+import InsightsService, { Event } from './services/InsightsService';
 import type { Request, Response } from 'express';
-
-import analyticsService, { InsightsService, Event } from './InsightsService';
 
 dotenv.config();
 
-const initExpress = (analyticsService: InsightsService) => {
+const initExpress = (insightsService: InsightsService) => {
     const app = express();
     app.use(express.json());
 
     app.get('/', (req: Request, res: Response) => {
-        res.send('Hello Analytics!');
+        res.send('Hello Insights!');
     });
 
     app.get('/api/insights', async (request: Request, response: Response) => {
-        const insights = await analyticsService.getInsights();
+        const insights = await insightsService.getInsights();
 
         response.status(200).send(JSON.stringify(insights));
     });
 
     app.post('/api/event', async (request: Request<unknown, unknown, Event>, response: Response) => {
         try {
-            await analyticsService.addEvent(request.body);
+            await insightsService.addEvent(request.body);
 
             response.sendStatus(200);
         } catch {
@@ -39,7 +38,10 @@ const initExpress = (analyticsService: InsightsService) => {
 };
 
 const init = async () => {
-    initExpress(analyticsService);
+    const insightsService = new InsightsService(process.env.REDIS_URL as string);
+
+    await insightsService.init();
+    initExpress(insightsService);
 };
 
 init();

@@ -1,4 +1,4 @@
-import type { Event } from '../src/InsightsService';
+import type { Event } from '../src/services/InsightsService';
 
 type EventFileEntry = Event & {
     timestamp: string;

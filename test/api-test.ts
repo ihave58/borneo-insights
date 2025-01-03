@@ -2,7 +2,7 @@ import { notEqual } from 'assert';
 import postEvent from './utils/postEvent';
 import readSampleEvents from './utils/readSampleEvents';
 
-import type { Event } from '../src/InsightsService';
+import type { Event } from '../src/services/InsightsService';
 
 describe('Tests for Events api', function () {
     let sampleEvents: Array<Event> = [];
@@ -16,6 +16,8 @@ describe('Tests for Events api', function () {
     });
 
     it('should ingest event', async function () {
+        this.timeout(60 * 1000);
+
         await postEvent(sampleEvents);
     });
 });

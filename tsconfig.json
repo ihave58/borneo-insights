@@ -1,20 +1,21 @@
 {
-  "compilerOptions": {
-    "target": "es2016",
-    "module": "commonjs",
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "strict": true,
-    "noImplicitAny": true,
-    "skipLibCheck": true,
-    "moduleResolution": "node",
-    "sourceMap": true,
-    "outDir": "dist"
-  },
-  "include": [
-    "src"
-  ],
-  "lib": [
-    "es2016"
-  ]
+    "compilerOptions": {
+        "target": "es2016",
+        "module": "commonjs",
+        "esModuleInterop": true,
+        "forceConsistentCasingInFileNames": true,
+        "strict": true,
+        "noImplicitAny": true,
+        "skipLibCheck": true,
+        "moduleResolution": "node",
+        "sourceMap": true,
+        "outDir": "dist"
+    },
+    "include": [
+        "src",
+        "scripts"
+    ],
+    "lib": [
+        "es2016"
+    ]
 }
