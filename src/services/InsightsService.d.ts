@@ -7,9 +7,9 @@ type Event<T = EventType> = {
 };
 
 type Insight = {
-    topAddToCartItem: string | null;
-    topPageVisitItem: string | null;
-    topSalesItem: string | null;
+    topAddToCartItemId: string | null;
+    topSoldItemId: string | null;
+    topVisitedItemId: string | null;
 };
 
 export type { Event, Insight };

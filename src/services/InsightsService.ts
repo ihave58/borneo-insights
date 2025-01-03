@@ -16,14 +16,14 @@ enum Stores {
     PageVisitItemIdToCountMap = 'PageVisitItemIdToCountMap',
     TopPageVisitItemId = 'TopPageVisitItemId',
 
-    HighestSalesItemIdSet = 'HighestSalesItemIdSet',
-    HighestSalesItemIdMap = 'HighestSalesItemIdMap',
-    TopSalesItemId = 'TopSalesItemId',
+    HighestSoldItemIdSet = 'HighestSoldItemIdSet',
+    HighestSoldItemIdMap = 'HighestSoldItemIdMap',
+    TopSoldItemId = 'TopSoldItemId',
 }
 
 const StoreWindowSize = {
     [Stores.AddToCartItemIdSet]: 24 * 60 * 60 * 1000,
-    [Stores.HighestSalesItemIdSet]: 24 * 60 * 60 * 1000,
+    [Stores.HighestSoldItemIdSet]: 24 * 60 * 60 * 1000,
     [Stores.PageVisitItemIdSet]: 1 * 60 * 60 * 1000,
 };
 
@@ -75,34 +75,34 @@ class InsightsService {
 
     private handleItemPurchaseEvent = async (event: Event<EventType.Purchase>) => {
         const currentTimestamp = Date.now();
-        const currentMinus1HourTimestamp = currentTimestamp - StoreWindowSize[Stores.HighestSalesItemIdSet];
+        const currentMinus1HourTimestamp = currentTimestamp - StoreWindowSize[Stores.HighestSoldItemIdSet];
 
         const expiredPurchasedItemIds = await this.redisClient.zRangeByScore(
-            Stores.HighestSalesItemIdSet,
+            Stores.HighestSoldItemIdSet,
             0,
             currentMinus1HourTimestamp,
         );
 
         for (const expiredItemId of expiredPurchasedItemIds) {
-            await this.redisClient.hIncrBy(Stores.HighestSalesItemIdMap, expiredItemId, -event.price);
+            await this.redisClient.hIncrBy(Stores.HighestSoldItemIdMap, expiredItemId, -event.price);
         }
 
-        await this.redisClient.zAdd(Stores.HighestSalesItemIdSet, { score: event.timestamp, value: event.item_id });
-        const newItemCount = await this.redisClient.hIncrBy(Stores.HighestSalesItemIdMap, event.item_id, event.price);
+        await this.redisClient.zAdd(Stores.HighestSoldItemIdSet, { score: event.timestamp, value: event.item_id });
+        const newItemCount = await this.redisClient.hIncrBy(Stores.HighestSoldItemIdMap, event.item_id, event.price);
 
-        const topSalesItemId = await this.redisClient.get(Stores.TopSalesItemId);
+        const topSalesItemId = await this.redisClient.get(Stores.TopSoldItemId);
 
         if (topSalesItemId == null) {
-            await this.redisClient.set(Stores.TopSalesItemId, event.item_id);
+            await this.redisClient.set(Stores.TopSoldItemId, event.item_id);
         } else {
-            const topPageVisitItemCount = await this.redisClient.hGet(Stores.HighestSalesItemIdMap, topSalesItemId);
+            const topPageVisitItemCount = await this.redisClient.hGet(Stores.HighestSoldItemIdMap, topSalesItemId);
 
             if (Number(newItemCount) >= Number(topPageVisitItemCount)) {
-                await this.redisClient.set(Stores.TopSalesItemId, event.item_id);
+                await this.redisClient.set(Stores.TopSoldItemId, event.item_id);
             }
         }
 
-        await this.redisClient.zRemRangeByScore(Stores.HighestSalesItemIdSet, 0, currentMinus1HourTimestamp);
+        await this.redisClient.zRemRangeByScore(Stores.HighestSoldItemIdSet, 0, currentMinus1HourTimestamp);
     };
 
     private handlePageVisitEvent = async (event: Event<EventType.PageVisit>) => {
@@ -161,14 +161,14 @@ class InsightsService {
     };
 
     public getInsights = async (): Promise<Insight> => {
-        const topAddToCartItem = await this.redisClient.get(Stores.TopPageVisitItemId);
-        const topPageVisitItem = await this.redisClient.get(Stores.TopPageVisitItemId);
-        const topSalesItem = await this.redisClient.get(Stores.TopSalesItemId);
+        const topAddToCartItemId = await this.redisClient.get(Stores.TopPageVisitItemId);
+        const topVisitedItemId = await this.redisClient.get(Stores.TopPageVisitItemId);
+        const topSoldItemId = await this.redisClient.get(Stores.TopSoldItemId);
         //
         return {
-            topAddToCartItem,
-            topPageVisitItem,
-            topSalesItem,
+            topAddToCartItemId,
+            topVisitedItemId,
+            topSoldItemId,
         };
     };
 
@@ -184,6 +184,6 @@ class InsightsService {
 }
 
 export default InsightsService;
-export { EventType, Stores };
+export { EventType, Stores, StoreWindowSize };
 
 export type { Event, Insight };
