@@ -1,7 +1,7 @@
-import type { Event, Insight } from '../src/services/InsightsService';
+import type { Event, Insights } from '../src/services/InsightsService';
 
 type EventFileEntry = Event & {
     timestamp: string;
 };
 
-export type { EventFileEntry, Insight };
+export type { EventFileEntry, Insights };

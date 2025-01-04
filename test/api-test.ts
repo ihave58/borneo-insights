@@ -23,7 +23,7 @@ describe('Tests for Events api', function () {
         notEqual(sampleEvents.length, 0);
     });
 
-    it('should ingest event', async function () {
+    it('should ingest sample events', async function () {
         this.timeout(60 * 1000);
 
         console.log('Ingesting sample events...');
@@ -35,7 +35,7 @@ describe('Tests for Events api', function () {
         }
     });
 
-    it('should provide insights', async function () {
+    it('should provide insights API', async function () {
         const insights = await fetchInsights();
 
         notEqual(insights.topAddToCartItemId, null);
@@ -118,7 +118,7 @@ describe('Tests for Events api', function () {
         for (const event of purchaseEvents) {
             const sales = itemIdToSalesMap.get(event.item_id) || 0;
 
-            itemIdToSalesMap.set(event.item_id, sales + event.price);
+            itemIdToSalesMap.set(event.item_id, sales + event.price!);
         }
 
         let topSoldItemId;

@@ -1,5 +1,5 @@
 import { createClient, RedisClientType } from 'redis';
-import { Event, Insight } from './InsightsService.d';
+import { Event, Insights } from './InsightsService.d';
 
 enum EventType {
     Purchase = 'purchase',
@@ -20,12 +20,6 @@ enum Stores {
     HighestSoldItemIdToSalesMap = 'HighestSoldItemIdToSalesMap',
     TopSoldItemId = 'TopSoldItemId',
 }
-
-// const StoreWindowSize = {
-//     [Stores.AddToCartItemIdSet]: 24 * 60 * 60 * 1000,
-//     [Stores.HighestSoldItemIdSet]: 24 * 60 * 60 * 1000,
-//     [Stores.PageVisitItemIdSet]: 1 * 60 * 60 * 1000,
-// };
 
 // const StoreWindowSize = {
 //     [Stores.AddToCartItemIdSet]: 24 * 60 * 60 * 1000, //24 hours
@@ -165,32 +159,28 @@ class InsightsService {
 
     addEvent = async (event: Event) => {
         switch (event.event_type) {
-            case EventType.AddToCart: {
+            case EventType.AddToCart:
                 await this.handleAddItemToCartEvent(event as Event<EventType.AddToCart>);
                 return true;
-            }
 
-            case EventType.PageVisit: {
+            case EventType.PageVisit:
                 await this.handlePageVisitEvent(event as Event<EventType.PageVisit>);
                 return true;
-            }
 
-            case EventType.Purchase: {
+            case EventType.Purchase:
                 await this.handleItemPurchaseEvent(event as Event<EventType.Purchase>);
                 return true;
-            }
 
-            default: {
+            default:
                 throw new Error('EventHandlerNotImplementedException');
-            }
         }
     };
 
-    getInsights = async (): Promise<Insight> => {
+    getInsights = async (): Promise<Insights> => {
         const topAddToCartItemId = await this.redisClient.get(Stores.TopAddToCardItemId);
         const topVisitedItemId = await this.redisClient.get(Stores.TopPageVisitItemId);
         const topSoldItemId = await this.redisClient.get(Stores.TopSoldItemId);
-        //
+
         return {
             topAddToCartItemId,
             topVisitedItemId,
@@ -210,4 +200,4 @@ class InsightsService {
 export default InsightsService;
 export { EventType, Stores, StoreWindowSize };
 
-export type { Event, Insight };
+export type { Event, Insights };

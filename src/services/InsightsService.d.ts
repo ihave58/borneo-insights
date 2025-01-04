@@ -6,10 +6,15 @@ type Event<T = EventType> = {
     price: T extends EventType.Purchase ? number : null;
 };
 
-type Insight = {
+type Insights = {
     topAddToCartItemId: string | null;
     topSoldItemId: string | null;
     topVisitedItemId: string | null;
 };
 
-export type { Event, Insight };
+export {
+    EventType,
+    Stores,
+};
+
+export type { Event, Insights };
