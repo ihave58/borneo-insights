@@ -84,7 +84,7 @@ class InsightsService {
         // const currentTimestamp = Date.now();
         const currentTimestamp = 1711497600000; // Wednesday, March 27, 2024 12:00:00 AM
         const windowStartTimestamp = currentTimestamp - StoreWindowSize[Stores.HighestSoldItemIdSet];
-        const eventPrice = Math.round(event.price * 100);
+        const eventPrice = Math.round(event.price! * 100);
 
         const expiredPurchasedItemIds = await this.redisClient.zRangeByScore(
             Stores.HighestSoldItemIdSet,

@@ -4,8 +4,12 @@ import postEvent from './utils/postEvent';
 
 import readSampleEvents from './utils/readSampleEvents';
 import fetchInsights from './utils/fetchInsights';
+import generateMockEvents from './utils/generateMockEvents';
+import getTopVisitedPageId from './utils/getTopVisitedPageId';
+import getTopAddToCartItemId from './utils/getTopAddToCartItemId';
+import getTopSoldItemId from './utils/getTopSoldItemId';
 
-import { Event, EventType, Stores, StoreWindowSize } from '../src/services/InsightsService';
+import { Event, Stores, StoreWindowSize } from '../src/services/InsightsService';
 
 describe('Tests for Events api', function () {
     let sampleEvents: Array<Event> = [];
@@ -48,26 +52,7 @@ describe('Tests for Events api', function () {
         const currentTimestamp = 1711497600000; // Wednesday, March 27, 2024 12:00:00 AM
         const windowStartTimestamp = currentTimestamp - StoreWindowSize[Stores.PageVisitItemIdSet];
 
-        const pageVisitEvents = sampleEvents.filter(
-            (event: Event) => event.event_type === EventType.PageVisit && event.timestamp >= windowStartTimestamp,
-        );
-
-        const itemIdToCountMap = new Map<string, number>();
-        for (const event of pageVisitEvents) {
-            const count = itemIdToCountMap.get(event.item_id) || 0;
-
-            itemIdToCountMap.set(event.item_id, count + 1);
-        }
-
-        let topPageVisitItemId;
-        for (const [itemId, itemCount] of itemIdToCountMap.entries()) {
-            if (topPageVisitItemId === undefined) {
-                topPageVisitItemId = itemId;
-            } else if (itemCount >= itemIdToCountMap.get(topPageVisitItemId!)!) {
-                topPageVisitItemId = itemId;
-            }
-        }
-
+        const topPageVisitItemId = getTopVisitedPageId(sampleEvents, windowStartTimestamp);
         const insights = await fetchInsights();
 
         // compare the manually computed insight with api response.
@@ -79,26 +64,7 @@ describe('Tests for Events api', function () {
         const currentTimestamp = 1711497600000; // Wednesday, March 27, 2024 12:00:00 AM
         const windowStartTimestamp = currentTimestamp - StoreWindowSize[Stores.PageVisitItemIdSet];
 
-        const addToCartEvents = sampleEvents.filter(
-            (event: Event) => event.event_type === EventType.AddToCart && event.timestamp >= windowStartTimestamp,
-        );
-        const itemIdToCountMap = new Map<string, number>();
-
-        for (const event of addToCartEvents) {
-            const count = itemIdToCountMap.get(event.item_id) || 0;
-
-            itemIdToCountMap.set(event.item_id, count + 1);
-        }
-
-        let topAddToCartItemId;
-        for (const [itemId, itemCount] of itemIdToCountMap.entries()) {
-            if (topAddToCartItemId === undefined) {
-                topAddToCartItemId = itemId;
-            } else if (itemCount >= itemIdToCountMap.get(topAddToCartItemId)!) {
-                topAddToCartItemId = itemId;
-            }
-        }
-
+        const topAddToCartItemId = getTopAddToCartItemId(sampleEvents, windowStartTimestamp);
         const insights = await fetchInsights();
 
         // compare the manually computed insight with api response.
@@ -110,29 +76,41 @@ describe('Tests for Events api', function () {
         const currentTimestamp = 1711497600000; // Wednesday, March 27, 2024 12:00:00 AM
         const windowStartTimestamp = currentTimestamp - StoreWindowSize[Stores.PageVisitItemIdSet];
 
-        const purchaseEvents = sampleEvents.filter(
-            (event: Event) => event.event_type === EventType.Purchase && event.timestamp >= windowStartTimestamp,
-        );
-        const itemIdToSalesMap = new Map<string, number>();
+        const topSoldItemId = getTopSoldItemId(sampleEvents, windowStartTimestamp);
+        const insights = await fetchInsights();
 
-        for (const event of purchaseEvents) {
-            const sales = itemIdToSalesMap.get(event.item_id) || 0;
+        // compare the manually computed insight with api response.
+        equal(topSoldItemId, insights.topSoldItemId);
+    });
 
-            itemIdToSalesMap.set(event.item_id, sales + event.price!);
+    it('should match the insights using mock data', async function () {
+        this.timeout(2 * 60 * 1000);
+
+        const currentMinus1YearTimestamp = Date.now() - 365 * 24 * 60 * 60 * 1000;
+        const defaultDuration = 24 * 60 * 60 * 1000;
+
+        const mockEvents = generateMockEvents(2000, currentMinus1YearTimestamp, defaultDuration);
+
+        const stdout = execSync('npm run cleanup');
+        console.log(stdout.toString());
+
+        console.log('Ingesting mock events...');
+        const responses = await postEvent(mockEvents);
+        console.log('Ingesting mock events done.');
+
+        for (const response of responses) {
+            equal(response.status, 200);
         }
 
-        let topSoldItemId;
-        for (const [itemId, itemCount] of itemIdToSalesMap.entries()) {
-            if (topSoldItemId === undefined) {
-                topSoldItemId = itemId;
-            } else if (itemCount >= itemIdToSalesMap.get(topSoldItemId!)!) {
-                topSoldItemId = itemId;
-            }
-        }
+        const topPageVisitItemId = getTopVisitedPageId(mockEvents, currentMinus1YearTimestamp);
+        const topAddToCartItemId = getTopAddToCartItemId(mockEvents, currentMinus1YearTimestamp);
+        const topSoldItemId = getTopSoldItemId(mockEvents, currentMinus1YearTimestamp);
 
         const insights = await fetchInsights();
 
         // compare the manually computed insight with api response.
+        equal(topPageVisitItemId, insights.topVisitedItemId);
+        equal(topAddToCartItemId, insights.topAddToCartItemId);
         equal(topSoldItemId, insights.topSoldItemId);
     });
 });

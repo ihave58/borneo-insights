@@ -19,8 +19,7 @@
     "description": "",
     "dependencies": {
         "express": "^4.21.2",
-        "redis": "^4.7.0",
-        "joi": "^17.13.3"
+        "redis": "^4.7.0"
     },
     "devDependencies": {
         "@types/express": "^5.0.0",
@@ -38,6 +37,8 @@
         "dotenv": "^16.4.7",
         "ts-node": "^10.9.2",
         "mocha": "^10.8.2",
-        "ts-mocha": "^10.0.0"
+        "ts-mocha": "^10.0.0",
+        "joi": "^17.13.3",
+        "@faker-js/faker": "^9.3.0"
     }
 }

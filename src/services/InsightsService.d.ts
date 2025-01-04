@@ -3,7 +3,7 @@ type Event<T = EventType> = {
     timestamp: number;
     item_id: string;
     event_type: T;
-    price: T extends EventType.Purchase ? number : null;
+    price: number | null;
 };
 
 type Insights = {

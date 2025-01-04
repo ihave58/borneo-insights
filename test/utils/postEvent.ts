@@ -2,20 +2,23 @@ import type { Event } from '../../src/services/InsightsService';
 import runSequentially from './runSequentially';
 import { EVENTS_URL } from '../path';
 
-const postEvent = async (event: Event | Array<Event>) => {
+const postEvent = async (event: Event | Array<Event>, delay = 10) => {
     const events = Array.isArray(event) ? event : [event];
 
     return runSequentially(
         events,
-        (event) =>
-            fetch(EVENTS_URL, {
+        (event) => {
+            console.log(JSON.stringify(event));
+
+            return fetch(EVENTS_URL, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(event),
-            }),
-        10,
+            });
+        },
+        delay,
     );
 };
 
