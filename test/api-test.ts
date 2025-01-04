@@ -1,3 +1,4 @@
+import { execSync } from 'child_process';
 import { notEqual, equal } from 'assert';
 import postEvent from './utils/postEvent';
 
@@ -10,7 +11,12 @@ describe('Tests for Events api', function () {
     let sampleEvents: Array<Event> = [];
 
     before(async function () {
+        const stdout = execSync('npm run cleanup');
+        console.log(stdout.toString());
+
+        console.log('Reading sample events...');
         sampleEvents = await readSampleEvents();
+        console.log('Reading sample events done.');
     });
 
     it('should read events from the sample file', function () {
@@ -20,7 +26,13 @@ describe('Tests for Events api', function () {
     it('should ingest event', async function () {
         this.timeout(60 * 1000);
 
-        await postEvent(sampleEvents);
+        console.log('Ingesting sample events...');
+        const responses = await postEvent(sampleEvents);
+        console.log('Ingesting sample events done.');
+
+        for (const response of responses) {
+            equal(response.status, 200);
+        }
     });
 
     it('should provide insights', async function () {
@@ -32,14 +44,15 @@ describe('Tests for Events api', function () {
     });
 
     it("should match the 'top visited' item", async function () {
-        const currentTimestamp = Date.now();
-        const currentMinus1HourTimestamp = currentTimestamp - StoreWindowSize[Stores.PageVisitItemIdSet];
+        // const currentTimestamp = Date.now();
+        const currentTimestamp = 1711497600000; // Wednesday, March 27, 2024 12:00:00 AM
+        const windowStartTimestamp = currentTimestamp - StoreWindowSize[Stores.PageVisitItemIdSet];
 
         const pageVisitEvents = sampleEvents.filter(
-            (event: Event) => event.event_type === EventType.PageVisit && event.timestamp >= currentMinus1HourTimestamp,
+            (event: Event) => event.event_type === EventType.PageVisit && event.timestamp >= windowStartTimestamp,
         );
-        const itemIdToCountMap = new Map<string, number>();
 
+        const itemIdToCountMap = new Map<string, number>();
         for (const event of pageVisitEvents) {
             const count = itemIdToCountMap.get(event.item_id) || 0;
 
@@ -57,15 +70,17 @@ describe('Tests for Events api', function () {
 
         const insights = await fetchInsights();
 
+        // compare the manually computed insight with api response.
         equal(topPageVisitItemId, insights.topVisitedItemId);
     });
 
     it("should match the 'top added to cart' item", async function () {
-        const currentTimestamp = Date.now();
-        const currentMinus1HourTimestamp = currentTimestamp - StoreWindowSize[Stores.PageVisitItemIdSet];
+        // const currentTimestamp = Date.now();
+        const currentTimestamp = 1711497600000; // Wednesday, March 27, 2024 12:00:00 AM
+        const windowStartTimestamp = currentTimestamp - StoreWindowSize[Stores.PageVisitItemIdSet];
 
         const addToCartEvents = sampleEvents.filter(
-            (event: Event) => event.event_type === EventType.AddToCart && event.timestamp >= currentMinus1HourTimestamp,
+            (event: Event) => event.event_type === EventType.AddToCart && event.timestamp >= windowStartTimestamp,
         );
         const itemIdToCountMap = new Map<string, number>();
 
@@ -86,35 +101,38 @@ describe('Tests for Events api', function () {
 
         const insights = await fetchInsights();
 
+        // compare the manually computed insight with api response.
         equal(topAddToCartItemId, insights.topAddToCartItemId);
     });
 
-    it("should match the 'top purchased' item", async function () {
-        const currentTimestamp = Date.now();
-        const currentMinus1HourTimestamp = currentTimestamp - StoreWindowSize[Stores.PageVisitItemIdSet];
+    it("should match the 'top sales' item", async function () {
+        // const currentTimestamp = Date.now();
+        const currentTimestamp = 1711497600000; // Wednesday, March 27, 2024 12:00:00 AM
+        const windowStartTimestamp = currentTimestamp - StoreWindowSize[Stores.PageVisitItemIdSet];
 
         const purchaseEvents = sampleEvents.filter(
-            (event: Event) => event.event_type === EventType.Purchase && event.timestamp >= currentMinus1HourTimestamp,
+            (event: Event) => event.event_type === EventType.Purchase && event.timestamp >= windowStartTimestamp,
         );
-        const itemIdToCountMap = new Map<string, number>();
+        const itemIdToSalesMap = new Map<string, number>();
 
         for (const event of purchaseEvents) {
-            const count = itemIdToCountMap.get(event.item_id) || 0;
+            const sales = itemIdToSalesMap.get(event.item_id) || 0;
 
-            itemIdToCountMap.set(event.item_id, count + 1);
+            itemIdToSalesMap.set(event.item_id, sales + event.price);
         }
 
-        let topPurchasedItemId;
-        for (const [itemId, itemCount] of itemIdToCountMap.entries()) {
-            if (topPurchasedItemId === undefined) {
-                topPurchasedItemId = itemId;
-            } else if (itemCount >= itemIdToCountMap.get(topPurchasedItemId!)!) {
-                topPurchasedItemId = itemId;
+        let topSoldItemId;
+        for (const [itemId, itemCount] of itemIdToSalesMap.entries()) {
+            if (topSoldItemId === undefined) {
+                topSoldItemId = itemId;
+            } else if (itemCount >= itemIdToSalesMap.get(topSoldItemId!)!) {
+                topSoldItemId = itemId;
             }
         }
 
         const insights = await fetchInsights();
 
-        equal(topPurchasedItemId, insights.topSoldItemId);
+        // compare the manually computed insight with api response.
+        equal(topSoldItemId, insights.topSoldItemId);
     });
 });

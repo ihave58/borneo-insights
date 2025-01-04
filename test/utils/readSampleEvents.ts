@@ -5,6 +5,16 @@ import type { EventFileEntry } from '../types';
 
 const sampleEventsPath = path.join(process.cwd(), './test/sample/events.jsonl');
 
+const mapToEvent = (eventEntryString: string): Event => {
+    const eventFileEntry = JSON.parse(eventEntryString) as EventFileEntry;
+    const timestamp = Date.parse(eventFileEntry.timestamp);
+
+    return {
+        ...eventFileEntry,
+        timestamp,
+    };
+};
+
 const readSampleEvents = async () => {
     return new Promise<Array<Event>>((resolve, reject) => {
         const onEventsReceived = (data: string) => {
@@ -14,17 +24,13 @@ const readSampleEvents = async () => {
 
                 for (let lineIndex = 0; lineIndex < eventStrings.length; lineIndex++) {
                     try {
-                        if (eventStrings[lineIndex].length > 2) {
-                            const eventFileEntry = JSON.parse(eventStrings[lineIndex]) as EventFileEntry;
-                            const timestamp = Date.parse(eventFileEntry.timestamp);
+                        const eventFileEntryString = eventStrings[lineIndex];
 
-                            events.push({
-                                ...eventFileEntry,
-                                timestamp: Date.now(),
-                            });
+                        if (eventFileEntryString.length > 2) {
+                            events.push(mapToEvent(eventFileEntryString));
                         }
                     } catch {
-                        console.error(`Error parsing events.jsonl > #${lineIndex}. skipping...`);
+                        console.error(`Error parsing events.jsonl line #${lineIndex}. skipping...`);
                     }
                 }
 
@@ -39,7 +45,7 @@ const readSampleEvents = async () => {
             encoding: 'utf-8',
         });
 
-        sampleEventsStream.on('error', (err) => console.error(`Error parsing events.jsonl`, err));
+        sampleEventsStream.on('error', (error) => console.error(`Error parsing events.jsonl`, error.message));
         sampleEventsStream.on('data', onEventsReceived);
     });
 };

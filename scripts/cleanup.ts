@@ -5,6 +5,7 @@ dotenv.config();
 
 (async () => {
     const insightsService = new InsightsService(process.env.REDIS_URL as string);
+    await insightsService.init();
 
     await insightsService.cleanup();
 

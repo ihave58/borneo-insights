@@ -17,14 +17,26 @@ enum Stores {
     TopPageVisitItemId = 'TopPageVisitItemId',
 
     HighestSoldItemIdSet = 'HighestSoldItemIdSet',
-    HighestSoldItemIdMap = 'HighestSoldItemIdMap',
+    HighestSoldItemIdToSalesMap = 'HighestSoldItemIdToSalesMap',
     TopSoldItemId = 'TopSoldItemId',
 }
 
+// const StoreWindowSize = {
+//     [Stores.AddToCartItemIdSet]: 24 * 60 * 60 * 1000,
+//     [Stores.HighestSoldItemIdSet]: 24 * 60 * 60 * 1000,
+//     [Stores.PageVisitItemIdSet]: 1 * 60 * 60 * 1000,
+// };
+
+// const StoreWindowSize = {
+//     [Stores.AddToCartItemIdSet]: 24 * 60 * 60 * 1000, //24 hours
+//     [Stores.HighestSoldItemIdSet]: 24 * 60 * 60 * 1000, // 24 hours
+//     [Stores.PageVisitItemIdSet]: 1 * 60 * 60 * 1000, // 1 hour
+// };
+
 const StoreWindowSize = {
-    [Stores.AddToCartItemIdSet]: 24 * 60 * 60 * 1000,
-    [Stores.HighestSoldItemIdSet]: 24 * 60 * 60 * 1000,
-    [Stores.PageVisitItemIdSet]: 1 * 60 * 60 * 1000,
+    [Stores.AddToCartItemIdSet]: 100 * 24 * 60 * 60 * 1000, // 100 days
+    [Stores.HighestSoldItemIdSet]: 100 * 24 * 60 * 60 * 1000, // 100 days
+    [Stores.PageVisitItemIdSet]: 100 * 24 * 60 * 60 * 1000, // 100 days
 };
 
 class InsightsService {
@@ -34,18 +46,19 @@ class InsightsService {
         this.redisClient = createClient({ url });
     }
 
-    public init = async (): Promise<void> => {
+    init = async (): Promise<void> => {
         await this.redisClient.connect();
     };
 
     private handleAddItemToCartEvent = async (event: Event<EventType.AddToCart>) => {
-        const currentTimestamp = Date.now();
-        const currentMinus1HourTimestamp = currentTimestamp - StoreWindowSize[Stores.AddToCartItemIdSet];
+        // const currentTimestamp = Date.now();
+        const currentTimestamp = 1711497600000; // Wednesday, March 27, 2024 12:00:00 AM
+        const windowStartTimestamp = currentTimestamp - StoreWindowSize[Stores.AddToCartItemIdSet];
 
         const expiredAddToCartItemIds = await this.redisClient.zRangeByScore(
             Stores.AddToCartItemIdSet,
             0,
-            currentMinus1HourTimestamp,
+            windowStartTimestamp,
         );
 
         for (const itemId of expiredAddToCartItemIds) {
@@ -70,49 +83,59 @@ class InsightsService {
             }
         }
 
-        await this.redisClient.zRemRangeByScore(Stores.AddToCartItemIdSet, 0, currentMinus1HourTimestamp);
+        await this.redisClient.zRemRangeByScore(Stores.AddToCartItemIdSet, 0, windowStartTimestamp);
     };
 
     private handleItemPurchaseEvent = async (event: Event<EventType.Purchase>) => {
-        const currentTimestamp = Date.now();
-        const currentMinus1HourTimestamp = currentTimestamp - StoreWindowSize[Stores.HighestSoldItemIdSet];
+        // const currentTimestamp = Date.now();
+        const currentTimestamp = 1711497600000; // Wednesday, March 27, 2024 12:00:00 AM
+        const windowStartTimestamp = currentTimestamp - StoreWindowSize[Stores.HighestSoldItemIdSet];
+        const eventPrice = Math.round(event.price * 100);
 
         const expiredPurchasedItemIds = await this.redisClient.zRangeByScore(
             Stores.HighestSoldItemIdSet,
             0,
-            currentMinus1HourTimestamp,
+            windowStartTimestamp,
         );
 
         for (const expiredItemId of expiredPurchasedItemIds) {
-            await this.redisClient.hIncrBy(Stores.HighestSoldItemIdMap, expiredItemId, -event.price);
+            await this.redisClient.hIncrBy(Stores.HighestSoldItemIdToSalesMap, expiredItemId, -eventPrice);
         }
 
         await this.redisClient.zAdd(Stores.HighestSoldItemIdSet, { score: event.timestamp, value: event.item_id });
-        const newItemCount = await this.redisClient.hIncrBy(Stores.HighestSoldItemIdMap, event.item_id, event.price);
+        const newItemCount = await this.redisClient.hIncrBy(
+            Stores.HighestSoldItemIdToSalesMap,
+            event.item_id,
+            eventPrice,
+        );
 
         const topSalesItemId = await this.redisClient.get(Stores.TopSoldItemId);
 
         if (topSalesItemId == null) {
             await this.redisClient.set(Stores.TopSoldItemId, event.item_id);
         } else {
-            const topPageVisitItemCount = await this.redisClient.hGet(Stores.HighestSoldItemIdMap, topSalesItemId);
+            const topPageVisitItemCount = await this.redisClient.hGet(
+                Stores.HighestSoldItemIdToSalesMap,
+                topSalesItemId,
+            );
 
             if (Number(newItemCount) >= Number(topPageVisitItemCount)) {
                 await this.redisClient.set(Stores.TopSoldItemId, event.item_id);
             }
         }
 
-        await this.redisClient.zRemRangeByScore(Stores.HighestSoldItemIdSet, 0, currentMinus1HourTimestamp);
+        await this.redisClient.zRemRangeByScore(Stores.HighestSoldItemIdSet, 0, windowStartTimestamp);
     };
 
     private handlePageVisitEvent = async (event: Event<EventType.PageVisit>) => {
-        const currentTimestamp = Date.now();
-        const currentMinus1HourTimestamp = currentTimestamp - StoreWindowSize[Stores.PageVisitItemIdSet];
+        // const currentTimestamp = Date.now();
+        const currentTimestamp = 1711497600000; // Wednesday, March 27, 2024 12:00:00 AM
+        const windowStartTimestamp = currentTimestamp - StoreWindowSize[Stores.PageVisitItemIdSet];
 
         const expiredPageVisitItemIds = await this.redisClient.zRangeByScore(
             Stores.PageVisitItemIdSet,
             0,
-            currentMinus1HourTimestamp,
+            windowStartTimestamp,
         );
 
         for (const itemId of expiredPageVisitItemIds) {
@@ -137,21 +160,24 @@ class InsightsService {
             }
         }
 
-        await this.redisClient.zRemRangeByScore(Stores.PageVisitItemIdSet, 0, currentMinus1HourTimestamp);
+        await this.redisClient.zRemRangeByScore(Stores.PageVisitItemIdSet, 0, windowStartTimestamp);
     };
 
-    public addEvent = async (event: Event) => {
+    addEvent = async (event: Event) => {
         switch (event.event_type) {
             case EventType.AddToCart: {
-                return await this.handleAddItemToCartEvent(event as Event<EventType.AddToCart>);
+                await this.handleAddItemToCartEvent(event as Event<EventType.AddToCart>);
+                return true;
             }
 
             case EventType.PageVisit: {
-                return await this.handlePageVisitEvent(event as Event<EventType.PageVisit>);
+                await this.handlePageVisitEvent(event as Event<EventType.PageVisit>);
+                return true;
             }
 
             case EventType.Purchase: {
-                return await this.handleItemPurchaseEvent(event as Event<EventType.Purchase>);
+                await this.handleItemPurchaseEvent(event as Event<EventType.Purchase>);
+                return true;
             }
 
             default: {
@@ -160,8 +186,8 @@ class InsightsService {
         }
     };
 
-    public getInsights = async (): Promise<Insight> => {
-        const topAddToCartItemId = await this.redisClient.get(Stores.TopPageVisitItemId);
+    getInsights = async (): Promise<Insight> => {
+        const topAddToCartItemId = await this.redisClient.get(Stores.TopAddToCardItemId);
         const topVisitedItemId = await this.redisClient.get(Stores.TopPageVisitItemId);
         const topSoldItemId = await this.redisClient.get(Stores.TopSoldItemId);
         //
@@ -172,9 +198,7 @@ class InsightsService {
         };
     };
 
-    public cleanup = async () => {
-        await this.redisClient.connect();
-
+    cleanup = async () => {
         const storeNames = Object.values(Stores);
 
         for (const storeName of storeNames) {
