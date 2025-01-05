@@ -8,7 +8,7 @@ const postEvent = async (event: Event | Array<Event>, delay = 10) => {
     return runSequentially(
         events,
         (event) => {
-            console.log(JSON.stringify(event));
+            // console.log(JSON.stringify(event));
 
             return fetch(EVENTS_URL, {
                 method: 'POST',
