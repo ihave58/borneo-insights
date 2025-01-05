@@ -1,5 +1,6 @@
 import { faker } from '@faker-js/faker';
-import { Event, EventType } from '../../src/services/InsightsService';
+import { EventType } from '../../src/enums';
+import { Event } from '../../src/types';
 
 const round = (number: number, decimalCount = 2) =>
     Math.round((number + Number.EPSILON) * Math.pow(10, decimalCount)) / Math.pow(10, decimalCount);

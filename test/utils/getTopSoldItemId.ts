@@ -1,4 +1,5 @@
-import { Event, EventType } from '../../src/services/InsightsService';
+import { EventType } from '../../src/enums';
+import { Event } from '../../src/types';
 
 const getTopSoldItemId = (events: Array<Event>, startTimestamp: number) => {
     const purchaseEvents = events.filter(

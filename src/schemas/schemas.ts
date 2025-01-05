@@ -1,5 +1,5 @@
 import Joi from 'joi';
-import { EventType } from './services/InsightsService';
+import { EventType } from '../enums';
 
 const EventSchema = Joi.object({
     timestamp: Joi.number().integer().positive().required(),

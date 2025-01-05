@@ -1,6 +1,6 @@
-import type { Event } from '../../src/services/InsightsService';
 import runSequentially from './runSequentially';
 import { EVENTS_URL } from '../path';
+import type { Event } from '../../src/types';
 
 const postEvent = async (event: Event | Array<Event>, delay = 10) => {
     const events = Array.isArray(event) ? event : [event];

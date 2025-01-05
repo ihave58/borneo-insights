@@ -1,6 +1,6 @@
 import path from 'path';
 import fs from 'fs';
-import type { Event } from '../../src/services/InsightsService';
+import type { Event } from '../../src/types';
 import type { EventFileEntry } from '../types';
 
 const sampleEventsPath = path.join(process.cwd(), './test/sample/events.jsonl');

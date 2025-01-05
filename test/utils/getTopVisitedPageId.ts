@@ -1,4 +1,5 @@
-import { Event, EventType } from '../../src/services/InsightsService';
+import { EventType } from '../../src/enums';
+import { Event } from '../../src/types';
 
 const getTopVisitedPageId = (events: Array<Event>, startTimestamp: number) => {
     const pageVisitEvents = events.filter(
@@ -6,6 +7,7 @@ const getTopVisitedPageId = (events: Array<Event>, startTimestamp: number) => {
     );
 
     const itemIdToCountMap = new Map<string, number>();
+
     for (const event of pageVisitEvents) {
         const count = itemIdToCountMap.get(event.item_id) || 0;
 
@@ -16,7 +18,12 @@ const getTopVisitedPageId = (events: Array<Event>, startTimestamp: number) => {
     for (const [itemId, itemCount] of itemIdToCountMap.entries()) {
         if (topPageVisitItemId === undefined) {
             topPageVisitItemId = itemId;
-        } else if (itemCount >= itemIdToCountMap.get(topPageVisitItemId!)!) {
+        } else if (itemCount > itemIdToCountMap.get(topPageVisitItemId!)!) {
+            topPageVisitItemId = itemId;
+        } else if (
+            itemCount === itemIdToCountMap.get(topPageVisitItemId!)! &&
+            topPageVisitItemId.localeCompare(itemId) < 0
+        ) {
             topPageVisitItemId = itemId;
         }
     }

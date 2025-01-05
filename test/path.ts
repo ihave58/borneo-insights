@@ -1,5 +1,4 @@
-const BASE_URL = 'http://localhost:3000/api';
-const EVENTS_URL = `${BASE_URL}/event`;
-const INSIGHTS_URL = `${BASE_URL}/insights`;
+const INSIGHTS_URL = 'http://localhost:3000/api/insights';
+const EVENTS_URL = 'http://localhost:3001/api/event';
 
 export { EVENTS_URL, INSIGHTS_URL };

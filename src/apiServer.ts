@@ -1,7 +1,6 @@
 import express, { type Request, type Response } from 'express';
 import dotenv from 'dotenv';
-
-import apiRoutes from './apiRoutes';
+import getInsights from './utils/getInsights';
 
 dotenv.config();
 
@@ -10,14 +9,18 @@ const init = async () => {
         const app = express();
 
         app.use(express.json());
-        app.use('/api', apiRoutes);
+        app.get('/api/insights', async (_req: Request, response: Response) => {
+            const insights = await getInsights();
+
+            response.status(200).json(insights);
+        });
 
         app.get('/', (_req: Request, res: Response) => {
             res.send('Hello Insights!');
         });
 
-        app.listen(process.env.PORT, () => {
-            return console.log(`Express is listening at http://localhost:${process.env.PORT}`);
+        app.listen(process.env.API_SERVER_PORT, () => {
+            return console.log(`API server is listening at http://localhost:${process.env.API_SERVER_PORT}`);
         });
 
         return app;

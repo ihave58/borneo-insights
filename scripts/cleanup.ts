@@ -1,13 +1,18 @@
 import dotenv from 'dotenv';
-import InsightsService from '../src/services/InsightsService';
+import getRedisClient from '../src/utils/getRedisClient';
+import { EventStore, InsightsStore } from '../src/enums';
 
 dotenv.config();
 
 (async () => {
-    const insightsService = new InsightsService(process.env.REDIS_URL as string);
-    await insightsService.init();
+    const storeNames = [...Object.values(EventStore), ...Object.values(InsightsStore)];
+    const redisClient = getRedisClient();
 
-    await insightsService.cleanup();
+    for (const storeName of storeNames) {
+        console.log(`Cleaning ${storeName}.`);
+
+        await redisClient.del(storeName);
+    }
 
     console.log('Cleanup success!');
     process.exit(0);

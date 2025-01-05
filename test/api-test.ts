@@ -9,7 +9,8 @@ import getTopVisitedPageId from './utils/getTopVisitedPageId';
 import getTopAddToCartItemId from './utils/getTopAddToCartItemId';
 import getTopSoldItemId from './utils/getTopSoldItemId';
 
-import { Event, Stores, StoreWindowSize } from '../src/services/InsightsService';
+import { StoreWindowSize, EventStore } from '../src/enums';
+import { Event } from '../src/types';
 
 describe('Tests for Events api', function () {
     let sampleEvents: Array<Event> = [];
@@ -50,10 +51,12 @@ describe('Tests for Events api', function () {
     it("should match the 'top visited' item", async function () {
         // const currentTimestamp = Date.now();
         const currentTimestamp = 1711497600000; // Wednesday, March 27, 2024 12:00:00 AM
-        const windowStartTimestamp = currentTimestamp - StoreWindowSize[Stores.PageVisitItemIdSet];
+        const windowStartTimestamp = currentTimestamp - StoreWindowSize[EventStore.PageVisitItemIdSet];
 
         const topPageVisitItemId = getTopVisitedPageId(sampleEvents, windowStartTimestamp);
         const insights = await fetchInsights();
+
+        // console.log('##', topPageVisitItemId, insights.topVisitedItemId);
 
         // compare the manually computed insight with api response.
         equal(topPageVisitItemId, insights.topVisitedItemId);
@@ -62,7 +65,7 @@ describe('Tests for Events api', function () {
     it("should match the 'top added to cart' item", async function () {
         // const currentTimestamp = Date.now();
         const currentTimestamp = 1711497600000; // Wednesday, March 27, 2024 12:00:00 AM
-        const windowStartTimestamp = currentTimestamp - StoreWindowSize[Stores.PageVisitItemIdSet];
+        const windowStartTimestamp = currentTimestamp - StoreWindowSize[EventStore.PageVisitItemIdSet];
 
         const topAddToCartItemId = getTopAddToCartItemId(sampleEvents, windowStartTimestamp);
         const insights = await fetchInsights();
@@ -74,7 +77,7 @@ describe('Tests for Events api', function () {
     it("should match the 'top sales' item", async function () {
         // const currentTimestamp = Date.now();
         const currentTimestamp = 1711497600000; // Wednesday, March 27, 2024 12:00:00 AM
-        const windowStartTimestamp = currentTimestamp - StoreWindowSize[Stores.PageVisitItemIdSet];
+        const windowStartTimestamp = currentTimestamp - StoreWindowSize[EventStore.PageVisitItemIdSet];
 
         const topSoldItemId = getTopSoldItemId(sampleEvents, windowStartTimestamp);
         const insights = await fetchInsights();

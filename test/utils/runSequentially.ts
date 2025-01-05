@@ -10,7 +10,12 @@ async function runSequentially<Value, Result>(
     const result: Array<Result> = [];
 
     for (const value of values) {
-        result.push(await fn(value));
+        try {
+            result.push(await fn(value));
+        } catch (e) {
+            console.error(e);
+        }
+
         await sleep(delay);
     }
     return result;

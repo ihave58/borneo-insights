@@ -1,4 +1,5 @@
-import { Event, EventType } from '../../src/services/InsightsService';
+import { EventType } from '../../src/enums';
+import { Event } from '../../src/types';
 
 const getTopAddToCartItemId = (events: Array<Event>, startTimestamp: number) => {
     const addToCartEvents = events.filter(
