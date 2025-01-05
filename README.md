@@ -1,8 +1,8 @@
 **Solution without using stream**
-Branch: https://github.com/ihave58/borneo-insights/tree/main
+Branch: "main" => https://github.com/ihave58/borneo-insights/tree/main
 
 **Solution with stream**
-https://github.com/ihave58/borneo-insights/tree/with-streams
+Branch: "with-stream" => https://github.com/ihave58/borneo-insights/tree/with-streams
 
 
 npm install;
