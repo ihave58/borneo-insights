@@ -1,3 +1,10 @@
+**Solution without using stream**
+Branch: https://github.com/ihave58/borneo-insights/tree/main
+
+**Solution with stream**
+https://github.com/ihave58/borneo-insights/tree/with-streams
+
+
 npm install;
 
 - Set the respective .env file for Redis server.
