@@ -26,11 +26,11 @@ describe('Tests for Events api', function () {
         console.log('Reading sample events done.');
     });
 
-    it.skip('should read events from the sample file', function () {
+    it('should read events from the sample file', function () {
         notEqual(sampleEvents.length, 0);
     });
 
-    it.skip('should ingest sample events', async function () {
+    it('should ingest sample events', async function () {
         this.timeout(60 * 1000);
 
         console.log('Ingesting sample events...');
@@ -45,7 +45,7 @@ describe('Tests for Events api', function () {
         await sleep(sampleEvents.length * 20);
     });
 
-    it.skip('should provide insights API', async function () {
+    it('should provide insights API', async function () {
         const insights = await fetchInsights();
 
         notEqual(insights.topAddToCartItemId, null);
@@ -53,7 +53,7 @@ describe('Tests for Events api', function () {
         notEqual(insights.topSoldItemId, null);
     });
 
-    it.skip("should match the 'top visited' item", async function () {
+    it("should match the 'top visited' item", async function () {
         // const currentTimestamp = Date.now();
         const currentTimestamp = 1711497600000; // Wednesday, March 27, 2024 12:00:00 AM
         const windowStartTimestamp = currentTimestamp - StoreWindowSize[EventStore.PageVisitItemIdSet];
@@ -65,7 +65,7 @@ describe('Tests for Events api', function () {
         equal(topVisitedItemId, insights.topVisitedItemId);
     });
 
-    it.skip("should match the 'top added to cart' item", async function () {
+    it("should match the 'top added to cart' item", async function () {
         // const currentTimestamp = Date.now();
         const currentTimestamp = 1711497600000; // Wednesday, March 27, 2024 12:00:00 AM
         const windowStartTimestamp = currentTimestamp - StoreWindowSize[EventStore.PageVisitItemIdSet];
@@ -77,7 +77,7 @@ describe('Tests for Events api', function () {
         equal(topAddToCartItemId, insights.topAddToCartItemId);
     });
 
-    it.skip("should match the 'top sales' item", async function () {
+    it("should match the 'top sales' item", async function () {
         // const currentTimestamp = Date.now();
         const currentTimestamp = 1711497600000; // Wednesday, March 27, 2024 12:00:00 AM
         const windowStartTimestamp = currentTimestamp - StoreWindowSize[EventStore.PageVisitItemIdSet];
@@ -101,7 +101,7 @@ describe('Tests for Events api', function () {
         if (mockEventsFromFile.length) {
             mockEvents = mockEventsFromFile;
         } else {
-            mockEvents = generateMockEvents(100, windowStartTimestamp, StoreWindowSize[EventStore.PageVisitItemIdSet]);
+            mockEvents = generateMockEvents(1000, windowStartTimestamp, StoreWindowSize[EventStore.PageVisitItemIdSet]);
             writeMockEvents(mockEvents);
         }
 
@@ -126,8 +126,8 @@ describe('Tests for Events api', function () {
         const insights = await fetchInsights();
 
         // compare the manually computed insight with api response.
-        // equal(topVisitedItemId, insights.topVisitedItemId);
+        equal(topVisitedItemId, insights.topVisitedItemId);
         equal(topAddToCartItemId, insights.topAddToCartItemId);
-        // equal(topSoldItemId, insights.topSoldItemId);
+        equal(topSoldItemId, insights.topSoldItemId);
     });
 });
