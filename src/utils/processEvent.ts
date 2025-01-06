@@ -30,8 +30,6 @@ const processAddToCartEvent = async (event: Event<EventType.AddToCart>, streamPr
         if (newItemCount > Number(topPageVisitItemCount)) {
             topAddToCartItemId = event.item_id;
         } else if (newItemCount === Number(topPageVisitItemCount)) {
-            console.log(event.item_id, topAddToCartItemId, event.item_id.localeCompare(topAddToCartItemId));
-
             if (event.item_id.localeCompare(topAddToCartItemId) > 0) {
                 topAddToCartItemId = event.item_id;
             }
@@ -40,6 +38,8 @@ const processAddToCartEvent = async (event: Event<EventType.AddToCart>, streamPr
 
     await redisClient.set(InsightsStore.TopAddToCardItemId, topAddToCartItemId);
     await redisClient.zRemRangeByScore(EventStore.AddToCartItemIdSet, 0, windowStartTimestamp);
+
+    return true;
 };
 
 const processPurchaseEvent = async (event: Event<EventType.Purchase>, streamPrefix: string) => {
@@ -80,6 +80,8 @@ const processPurchaseEvent = async (event: Event<EventType.Purchase>, streamPref
 
     await redisClient.set(InsightsStore.TopSoldItemId, topSoldItemId);
     await redisClient.zRemRangeByScore(EventStore.HighestSoldItemIdSet, 0, windowStartTimestamp);
+
+    return true;
 };
 
 const processPageVisitEvent = async (event: Event<EventType.PageVisit>, streamPrefix: string) => {
@@ -118,23 +120,29 @@ const processPageVisitEvent = async (event: Event<EventType.PageVisit>, streamPr
 
     await redisClient.set(InsightsStore.TopPageVisitItemId, topPageVisitItemId);
     await redisClient.zRemRangeByScore(EventStore.PageVisitItemIdSet, 0, windowStartTimestamp);
+
+    return true;
 };
 
 const processEvent = async (event: Event, streamPrefix: string) => {
     console.log(`Processing event: ${JSON.stringify(event)}`);
 
-    switch (event.event_type) {
-        case EventType.AddToCart:
-            return processAddToCartEvent(event as Event<EventType.AddToCart>, streamPrefix);
+    try {
+        switch (event.event_type) {
+            case EventType.AddToCart:
+                return processAddToCartEvent(event as Event<EventType.AddToCart>, streamPrefix);
 
-        case EventType.PageVisit:
-            return processPageVisitEvent(event as Event<EventType.PageVisit>, streamPrefix);
+            case EventType.PageVisit:
+                return processPageVisitEvent(event as Event<EventType.PageVisit>, streamPrefix);
 
-        case EventType.Purchase:
-            return processPurchaseEvent(event as Event<EventType.Purchase>, streamPrefix);
+            case EventType.Purchase:
+                return processPurchaseEvent(event as Event<EventType.Purchase>, streamPrefix);
 
-        default:
-            throw new Error('EventHandlerNotImplementedException');
+            default:
+                throw new Error('EventHandlerNotImplementedException');
+        }
+    } catch {
+        return false;
     }
 };
 

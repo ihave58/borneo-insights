@@ -1,6 +1,6 @@
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const randomSleep = (min: number = 100, max: number = 1000) => {
+const randomSleep = (min: number = 10, max: number = 100) => {
     return sleep(Math.ceil(Math.random() * (max - min) + min));
 };
 

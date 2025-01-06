@@ -9,24 +9,32 @@ import { EventStore } from './enums';
 dotenv.config();
 
 const init = async () => {
+    const parsedMinDelay = Number(process.argv[process.argv.length - 2]);
+    const parsedMaxDelay = Number(process.argv[process.argv.length - 1]);
+
+    const minDelay = Number.isNaN(parsedMinDelay) ? 0 : parsedMinDelay;
+    const maxDelay = Number.isNaN(parsedMaxDelay) ? 0 : parsedMaxDelay;
+
     while (true) {
         try {
             const newEvents = await getNewEvents(EventStore.EventStream);
 
             if (newEvents.length > 0) {
                 for (const [id, newEvent] of newEvents) {
-                    await processEvent(newEvent, EventStore.EventStream);
+                    const result = await processEvent(newEvent, EventStore.EventStream);
 
-                    await setLastProcessedEventId(id);
+                    if (result) {
+                        await setLastProcessedEventId(id);
+                    }
                 }
             } else {
-                console.log('No event found. waiting...');
+                console.log('Waiting for events...');
             }
         } catch (error) {
             console.error(error);
         }
 
-        await randomSleep();
+        await randomSleep(minDelay, maxDelay);
     }
 };
 

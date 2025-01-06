@@ -34,7 +34,7 @@ const getNewEvents = async (streamPrefix: string): Promise<Array<[string, Event]
             id: lastProcessedEventId,
         },
         {
-            COUNT: 1000,
+            COUNT: 1,
         },
     );
 

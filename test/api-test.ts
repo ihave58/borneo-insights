@@ -1,10 +1,11 @@
 import { execSync } from 'child_process';
 import { notEqual, equal } from 'assert';
+import fs from 'fs';
 import postEvent from './utils/postEvent';
 import { sleep } from '../src/utils/sleep';
 
-import readEvents from './utils/readEvents';
-import { writeMockEvents, getMockEvents } from './utils/mockEvents';
+import readEventsFromFile from './utils/readEventsFromFile';
+import { writeMockEvents, readMockEvents } from './utils/mockEvents';
 import fetchInsights from './utils/fetchInsights';
 import generateMockEvents from './utils/generateMockEvents';
 import getTopVisitedPageId from './utils/getTopVisitedPageId';
@@ -13,6 +14,10 @@ import getTopSoldItemId from './utils/getTopSoldItemId';
 
 import { StoreWindowSize, EventStore } from '../src/enums';
 import { Event } from '../src/types';
+import path from 'path';
+
+const sampleEventsPath = path.join(process.cwd(), './test/sample/events.jsonl');
+const mockEventsPath = path.join(process.cwd(), './test/sample/mock.jsonl');
 
 describe('Tests for Events api', function () {
     let sampleEvents: Array<Event> = [];
@@ -22,7 +27,7 @@ describe('Tests for Events api', function () {
         console.log(stdout.toString());
 
         console.log('Reading sample events...');
-        sampleEvents = await readEvents();
+        sampleEvents = readEventsFromFile(sampleEventsPath);
         console.log('Reading sample events done.');
     });
 
@@ -89,21 +94,17 @@ describe('Tests for Events api', function () {
         equal(topSoldItemId, insights.topSoldItemId);
     });
 
-    it('should match the insights using mock data', async function () {
+    it('should ingest mock events', async function () {
         this.timeout(2 * 60 * 1000);
 
         const currentTimestamp = Date.now();
         const windowStartTimestamp = currentTimestamp - StoreWindowSize[EventStore.PageVisitItemIdSet];
 
-        const mockEventsFromFile = await getMockEvents();
-        let mockEvents = [];
-
-        if (mockEventsFromFile.length) {
-            mockEvents = mockEventsFromFile;
-        } else {
-            mockEvents = generateMockEvents(1000, windowStartTimestamp, StoreWindowSize[EventStore.PageVisitItemIdSet]);
-            writeMockEvents(mockEvents);
-        }
+        const mockEvents = generateMockEvents(
+            2000,
+            windowStartTimestamp,
+            StoreWindowSize[EventStore.PageVisitItemIdSet],
+        );
 
         const stdout = execSync('npm run cleanup');
         console.log(stdout.toString());
@@ -116,8 +117,20 @@ describe('Tests for Events api', function () {
             equal(response.status, 200);
         }
 
+        writeMockEvents(mockEvents, mockEventsPath);
+        equal(fs.existsSync(mockEventsPath), true);
+
         console.log('Waiting for mock events to get processed...');
-        await sleep(mockEvents.length * 20);
+        await sleep(mockEvents.length * 10);
+    });
+
+    it('should match the insights using mock data', async function () {
+        const currentTimestamp = Date.now();
+        const windowStartTimestamp = currentTimestamp - StoreWindowSize[EventStore.PageVisitItemIdSet];
+
+        console.log('Reading mock events...');
+        const mockEvents = readMockEvents(mockEventsPath);
+        console.log('Reading mock events done. Total Events: ', mockEvents.length);
 
         const topVisitedItemId = getTopVisitedPageId(mockEvents, windowStartTimestamp);
         const topAddToCartItemId = getTopAddToCartItemId(mockEvents, windowStartTimestamp);
