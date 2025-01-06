@@ -8,7 +8,7 @@ import { EventStore } from './enums';
 
 dotenv.config();
 
-const init = async () => {
+(async () => {
     const parsedMinDelay = Number(process.argv[process.argv.length - 2]);
     const parsedMaxDelay = Number(process.argv[process.argv.length - 1]);
 
@@ -36,6 +36,4 @@ const init = async () => {
 
         await randomSleep(minDelay, maxDelay);
     }
-};
-
-init();
+})();

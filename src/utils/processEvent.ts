@@ -38,6 +38,7 @@ const processAddToCartEvent = async (event: Event<EventType.AddToCart>, streamPr
 
     await redisClient.set(InsightsStore.TopAddToCardItemId, topAddToCartItemId);
     await redisClient.zRemRangeByScore(EventStore.AddToCartItemIdSet, 0, windowStartTimestamp);
+    await redisClient.xTrim(EventStore.EventStream, 'MINID', windowStartTimestamp);
 
     return true;
 };
@@ -80,6 +81,7 @@ const processPurchaseEvent = async (event: Event<EventType.Purchase>, streamPref
 
     await redisClient.set(InsightsStore.TopSoldItemId, topSoldItemId);
     await redisClient.zRemRangeByScore(EventStore.HighestSoldItemIdSet, 0, windowStartTimestamp);
+    await redisClient.xTrim(EventStore.EventStream, 'MINID', windowStartTimestamp);
 
     return true;
 };
@@ -120,6 +122,7 @@ const processPageVisitEvent = async (event: Event<EventType.PageVisit>, streamPr
 
     await redisClient.set(InsightsStore.TopPageVisitItemId, topPageVisitItemId);
     await redisClient.zRemRangeByScore(EventStore.PageVisitItemIdSet, 0, windowStartTimestamp);
+    await redisClient.xTrim(EventStore.EventStream, 'MINID', windowStartTimestamp);
 
     return true;
 };
