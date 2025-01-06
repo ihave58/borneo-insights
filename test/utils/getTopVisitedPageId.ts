@@ -20,11 +20,12 @@ const getTopVisitedPageId = (events: Array<Event>, startTimestamp: number) => {
             topPageVisitItemId = itemId;
         } else if (itemCount > itemIdToCountMap.get(topPageVisitItemId!)!) {
             topPageVisitItemId = itemId;
-        } else if (
-            itemCount === itemIdToCountMap.get(topPageVisitItemId!)! &&
-            topPageVisitItemId.localeCompare(itemId) < 0
-        ) {
-            topPageVisitItemId = itemId;
+        } else if (itemCount === itemIdToCountMap.get(topPageVisitItemId!)!) {
+            // console.log('#####', itemId, topPageVisitItemId, topPageVisitItemId.localeCompare(itemId));
+
+            if (itemId.localeCompare(topPageVisitItemId)) {
+                topPageVisitItemId = itemId;
+            }
         }
     }
 

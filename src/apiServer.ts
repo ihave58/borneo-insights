@@ -12,11 +12,15 @@ const init = async () => {
         app.get('/api/insights', async (_req: Request, response: Response) => {
             const insights = await getInsights();
 
-            response.status(200).json(insights);
+            if (insights) {
+                response.status(200).json(insights);
+            } else {
+                response.sendStatus(500);
+            }
         });
 
         app.get('/', (_req: Request, res: Response) => {
-            res.send('Hello Insights!');
+            res.send('Hello from Event Insights service...!');
         });
 
         app.listen(process.env.API_SERVER_PORT, () => {

@@ -17,8 +17,14 @@ const getTopAddToCartItemId = (events: Array<Event>, startTimestamp: number) => 
     for (const [itemId, itemCount] of itemIdToCountMap.entries()) {
         if (topAddToCartItemId === undefined) {
             topAddToCartItemId = itemId;
-        } else if (itemCount >= itemIdToCountMap.get(topAddToCartItemId)!) {
+        } else if (itemCount > itemIdToCountMap.get(topAddToCartItemId)!) {
             topAddToCartItemId = itemId;
+        } else if (itemCount === itemIdToCountMap.get(topAddToCartItemId!)!) {
+            // console.log('#####', itemId, topAddToCartItemId, topAddToCartItemId.localeCompare(itemId));
+
+            if (itemId.localeCompare(topAddToCartItemId)) {
+                topAddToCartItemId = itemId;
+            }
         }
     }
 

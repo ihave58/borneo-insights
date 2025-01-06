@@ -31,9 +31,9 @@ enum InsightsStore {
 // };
 
 const StoreWindowSize = {
-    [EventStore.AddToCartItemIdSet]: 100 * 24 * 60 * 60 * 1000, // 100 days
-    [EventStore.HighestSoldItemIdSet]: 100 * 24 * 60 * 60 * 1000, // 100 days
-    [EventStore.PageVisitItemIdSet]: 100 * 24 * 60 * 60 * 1000, // 100 days
+    [EventStore.AddToCartItemIdSet]: 300 * 24 * 60 * 60 * 1000, // 300 days
+    [EventStore.HighestSoldItemIdSet]: 300 * 24 * 60 * 60 * 1000, // 300 days
+    [EventStore.PageVisitItemIdSet]: 300 * 24 * 60 * 60 * 1000, // 300 days
 };
 
 export { EventType, EventStore, InsightsStore, StoreWindowSize };

@@ -15,7 +15,7 @@ const mapToEvent = (eventEntryString: string): Event => {
     };
 };
 
-const readSampleEvents = async () => {
+const readEvents = async (filePath: string = sampleEventsPath) => {
     return new Promise<Array<Event>>((resolve, reject) => {
         const onEventsReceived = (data: string) => {
             try {
@@ -30,7 +30,7 @@ const readSampleEvents = async () => {
                             events.push(mapToEvent(eventFileEntryString));
                         }
                     } catch {
-                        console.error(`Error parsing events.jsonl line #${lineIndex}. skipping...`);
+                        console.error(`Error parsing ${filePath} line #${lineIndex}. skipping...`);
                     }
                 }
 
@@ -41,13 +41,13 @@ const readSampleEvents = async () => {
             }
         };
 
-        const sampleEventsStream = fs.createReadStream(sampleEventsPath, {
+        const sampleEventsStream = fs.createReadStream(filePath, {
             encoding: 'utf-8',
         });
 
-        sampleEventsStream.on('error', (error) => console.error(`Error parsing events.jsonl`, error.message));
+        sampleEventsStream.on('error', reject);
         sampleEventsStream.on('data', onEventsReceived);
     });
 };
 
-export default readSampleEvents;
+export default readEvents;

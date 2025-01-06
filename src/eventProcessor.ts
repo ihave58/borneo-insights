@@ -22,11 +22,11 @@ const init = async () => {
             } else {
                 console.log('No event found. waiting...');
             }
-
-            await randomSleep();
         } catch (error) {
             console.error(error);
         }
+
+        await randomSleep();
     }
 };
 
