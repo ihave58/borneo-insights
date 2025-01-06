@@ -22,7 +22,7 @@ const getTopAddToCartItemId = (events: Array<Event>, startTimestamp: number) => 
         } else if (itemCount === itemIdToCountMap.get(topAddToCartItemId!)!) {
             // console.log('#####', itemId, topAddToCartItemId, topAddToCartItemId.localeCompare(itemId));
 
-            if (itemId.localeCompare(topAddToCartItemId)) {
+            if (itemId.localeCompare(topAddToCartItemId) > 0) {
                 topAddToCartItemId = itemId;
             }
         }

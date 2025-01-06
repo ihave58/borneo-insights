@@ -32,7 +32,7 @@ const processAddToCartEvent = async (event: Event<EventType.AddToCart>, streamPr
         } else if (newItemCount === Number(topPageVisitItemCount)) {
             console.log(event.item_id, topAddToCartItemId, event.item_id.localeCompare(topAddToCartItemId));
 
-            if (event.item_id.localeCompare(topAddToCartItemId)) {
+            if (event.item_id.localeCompare(topAddToCartItemId) > 0) {
                 topAddToCartItemId = event.item_id;
             }
         }
@@ -72,7 +72,7 @@ const processPurchaseEvent = async (event: Event<EventType.Purchase>, streamPref
         if (newItemCount > Number(topPageVisitItemCount)) {
             topSoldItemId = event.item_id;
         } else if (newItemCount === Number(topPageVisitItemCount)) {
-            if (event.item_id.localeCompare(topSoldItemId)) {
+            if (event.item_id.localeCompare(topSoldItemId) > 0) {
                 topSoldItemId = event.item_id;
             }
         }
@@ -110,7 +110,7 @@ const processPageVisitEvent = async (event: Event<EventType.PageVisit>, streamPr
         if (Number(newItemCount) > Number(topPageVisitItemCount)) {
             topPageVisitItemId = event.item_id;
         } else if (newItemCount === Number(topPageVisitItemCount)) {
-            if (event.item_id.localeCompare(topPageVisitItemId)) {
+            if (event.item_id.localeCompare(topPageVisitItemId) > 0) {
                 topPageVisitItemId = event.item_id;
             }
         }

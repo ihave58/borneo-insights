@@ -23,7 +23,7 @@ const getTopVisitedPageId = (events: Array<Event>, startTimestamp: number) => {
         } else if (itemCount === itemIdToCountMap.get(topPageVisitItemId!)!) {
             // console.log('#####', itemId, topPageVisitItemId, topPageVisitItemId.localeCompare(itemId));
 
-            if (itemId.localeCompare(topPageVisitItemId)) {
+            if (itemId.localeCompare(topPageVisitItemId) > 0) {
                 topPageVisitItemId = itemId;
             }
         }

@@ -22,7 +22,7 @@ const getTopSoldItemId = (events: Array<Event>, startTimestamp: number) => {
         } else if (itemCount === itemIdToSalesMap.get(topSoldItemId!)!) {
             // console.log('#####', itemId, topPageVisitItemId, topPageVisitItemId.localeCompare(itemId));
 
-            if (itemId.localeCompare(topSoldItemId)) {
+            if (itemId.localeCompare(topSoldItemId) > 0) {
                 topSoldItemId = itemId;
             }
         }
