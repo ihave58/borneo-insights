@@ -4,7 +4,7 @@ import { Event } from '../../src/types';
 import type { EventFileEntry } from '../types';
 
 const mapToEventEntry = (event: Event): EventFileEntry => {
-    const timestamp = new Date().toUTCString();
+    const timestamp = new Date(event.timestamp).toUTCString();
 
     return {
         ...event,
