@@ -24,7 +24,9 @@ const init = async () => {
         });
 
         app.listen(process.env.API_SERVER_PORT, () => {
-            return console.log(`API server is listening at http://localhost:${process.env.API_SERVER_PORT}`);
+            return console.log(
+                `API server is listening at http://localhost:${process.env.API_SERVER_PORT}`,
+            );
         });
 
         return app;

@@ -36,4 +36,12 @@ const StoreWindowSize = {
     [EventStore.PageVisitItemIdSet]: 300 * 24 * 60 * 60 * 1000, // 300 days
 };
 
-export { EventType, EventStore, InsightsStore, StoreWindowSize };
+const InsightsConsumerGroupName = 'InsightsConsumerGroup';
+
+export {
+    EventType,
+    EventStore,
+    InsightsStore,
+    StoreWindowSize,
+    InsightsConsumerGroupName,
+};

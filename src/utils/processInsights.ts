@@ -2,7 +2,7 @@ import getRedisClient from './getRedisClient';
 import type { Event } from '../types';
 import { EventType, EventStore, InsightsStore, StoreWindowSize } from '../enums';
 
-const processAddToCartEvent = async (event: Event<EventType.AddToCart>, streamPrefix: string) => {
+const processAddToCartInsight = async (event: Event<EventType.AddToCart>) => {
     const redisClient = getRedisClient();
     const currentTimestamp = Date.now();
     // const currentTimestamp = 1711497600000; // Wednesday, March 27, 2024 12:00:00 AM
@@ -38,12 +38,12 @@ const processAddToCartEvent = async (event: Event<EventType.AddToCart>, streamPr
 
     await redisClient.set(InsightsStore.TopAddToCardItemId, topAddToCartItemId);
     await redisClient.zRemRangeByScore(EventStore.AddToCartItemIdSet, 0, windowStartTimestamp);
-    await redisClient.xTrim(EventStore.EventStream, 'MINID', windowStartTimestamp);
+    // await redisClient.xTrim(EventStore.EventStream, 'MINID', windowStartTimestamp);
 
     return true;
 };
 
-const processPurchaseEvent = async (event: Event<EventType.Purchase>, streamPrefix: string) => {
+const processPurchaseInsight = async (event: Event<EventType.Purchase>) => {
     const redisClient = getRedisClient();
     const currentTimestamp = Date.now();
     // const currentTimestamp = 1711497600000; // Wednesday, March 27, 2024 12:00:00 AM
@@ -81,12 +81,12 @@ const processPurchaseEvent = async (event: Event<EventType.Purchase>, streamPref
 
     await redisClient.set(InsightsStore.TopSoldItemId, topSoldItemId);
     await redisClient.zRemRangeByScore(EventStore.HighestSoldItemIdSet, 0, windowStartTimestamp);
-    await redisClient.xTrim(EventStore.EventStream, 'MINID', windowStartTimestamp);
+    // await redisClient.xTrim(EventStore.EventStream, 'MINID', windowStartTimestamp);
 
     return true;
 };
 
-const processPageVisitEvent = async (event: Event<EventType.PageVisit>, streamPrefix: string) => {
+const processPageVisitInsight = async (event: Event<EventType.PageVisit>) => {
     const redisClient = getRedisClient();
     const currentTimestamp = Date.now();
     // const currentTimestamp = 1711497600000; // Wednesday, March 27, 2024 12:00:00 AM
@@ -122,24 +122,24 @@ const processPageVisitEvent = async (event: Event<EventType.PageVisit>, streamPr
 
     await redisClient.set(InsightsStore.TopPageVisitItemId, topPageVisitItemId);
     await redisClient.zRemRangeByScore(EventStore.PageVisitItemIdSet, 0, windowStartTimestamp);
-    await redisClient.xTrim(EventStore.EventStream, 'MINID', windowStartTimestamp);
+    // await redisClient.xTrim(EventStore.EventStream, 'MINID', windowStartTimestamp);
 
     return true;
 };
 
-const processEvent = async (event: Event, streamPrefix: string) => {
-    console.log(`Processing event: ${JSON.stringify(event)}`);
+const processInsights = async (event: Event) => {
+    console.log(`processing event: ${JSON.stringify(event)}`);
 
     try {
         switch (event.event_type) {
             case EventType.AddToCart:
-                return processAddToCartEvent(event as Event<EventType.AddToCart>, streamPrefix);
+                return processAddToCartInsight(event as Event<EventType.AddToCart>);
 
             case EventType.PageVisit:
-                return processPageVisitEvent(event as Event<EventType.PageVisit>, streamPrefix);
+                return processPageVisitInsight(event as Event<EventType.PageVisit>);
 
             case EventType.Purchase:
-                return processPurchaseEvent(event as Event<EventType.Purchase>, streamPrefix);
+                return processPurchaseInsight(event as Event<EventType.Purchase>);
 
             default:
                 throw new Error('EventHandlerNotImplementedException');
@@ -149,4 +149,4 @@ const processEvent = async (event: Event, streamPrefix: string) => {
     }
 };
 
-export default processEvent;
+export default processInsights;

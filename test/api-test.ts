@@ -23,8 +23,8 @@ describe('Tests for Events api', function () {
     let sampleEvents: Array<Event> = [];
 
     before(async function () {
-        const stdout = execSync('npm run cleanup');
-        console.log(stdout.toString());
+        console.log(execSync('npm run cleanup').toString());
+        console.log(execSync('npm run init').toString());
 
         console.log('Reading sample events...');
         sampleEvents = readEventsFromFile(sampleEventsPath);
@@ -106,8 +106,8 @@ describe('Tests for Events api', function () {
             StoreWindowSize[EventStore.PageVisitItemIdSet],
         );
 
-        const stdout = execSync('npm run cleanup');
-        console.log(stdout.toString());
+        console.log(execSync('npm run cleanup').toString());
+        console.log(execSync('npm run init').toString());
 
         console.log('Ingesting mock events...');
         const responses = await postEvent(mockEvents);

@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 import getRedisClient from '../src/utils/getRedisClient';
-import { EventStore, InsightsStore } from '../src/enums';
+import { EventStore, InsightsStore, InsightsConsumerGroupName } from '../src/enums';
 
 dotenv.config();
 
@@ -9,11 +9,18 @@ dotenv.config();
     const redisClient = getRedisClient();
 
     for (const storeName of storeNames) {
-        console.log(`Cleaning ${storeName}.`);
-
+        console.log(`removing ${storeName}..`);
         await redisClient.del(storeName);
     }
 
-    console.log('Cleanup success!');
+    console.log('removing consumer group..');
+
+    try {
+        await redisClient.xGroupDestroy(EventStore.EventStream, InsightsConsumerGroupName);
+    } catch {
+        console.log();
+    }
+
+    console.log('cleanup success!');
     process.exit(0);
 })();

@@ -8,7 +8,7 @@ import { EventStore } from './enums';
 
 dotenv.config();
 
-const init = async () => {
+(async () => {
     try {
         const app = express();
         app.use(express.json());
@@ -21,7 +21,7 @@ const init = async () => {
                     throw new Error(validationResult.error.message);
                 }
 
-                await ingestEvent(request.body, EventStore.EventStream);
+                await ingestEvent(validationResult.value, EventStore.EventStream);
                 response.sendStatus(200);
             } catch (error) {
                 console.error(error);
@@ -44,6 +44,4 @@ const init = async () => {
     } catch (error) {
         console.error(error);
     }
-};
-
-init();
+})();

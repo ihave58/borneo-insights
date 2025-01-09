@@ -20,7 +20,7 @@ const mapToEventPriceAsString = (event: Event): EventPriceAsString => {
 };
 
 const ingestEvent = async (event: Event, streamPrefix: string) => {
-    const redisClient = await getRedisClient();
+    const redisClient = getRedisClient();
     const streamKey = getEventStreamName(streamPrefix);
 
     await redisClient.xAdd(streamKey, '*', mapToEventPriceAsString(event));

@@ -1,29 +1,37 @@
 import dotenv from 'dotenv';
 
-import getNewEvents from './utils/getNewEvents';
-import processEvent from './utils/processEvent';
-import { setLastProcessedEventId } from './utils/lastProcessedEvent';
+import { checkAndClaimFailedEvents, getNewEvents } from './utils/eventUtils';
+import processInsights from './utils/processInsights';
+import { ackEventId, setLastProcessedEventId } from './utils/lastProcessedEvent';
 import { randomSleep } from './utils/sleep';
 import { EventStore } from './enums';
 
 dotenv.config();
 
 (async () => {
+    const consumerId = process.argv[2];
+
     const parsedMinDelay = Number(process.argv[process.argv.length - 2]);
     const parsedMaxDelay = Number(process.argv[process.argv.length - 1]);
 
     const minDelay = Number.isNaN(parsedMinDelay) ? 0 : parsedMinDelay;
-    const maxDelay = Number.isNaN(parsedMaxDelay) ? 0 : parsedMaxDelay;
+    const maxDelay = Number.isNaN(parsedMaxDelay) ? minDelay : parsedMaxDelay;
+
+    if (consumerId == null) {
+        process.exit('consumer name is required.');
+    }
 
     while (true) {
         try {
-            const newEvents = await getNewEvents(EventStore.EventStream);
+            // await checkAndClaimFailedEvents(EventStore.EventStream, consumerId);
+            const newEvents = await getNewEvents(EventStore.EventStream, consumerId);
 
             if (newEvents.length > 0) {
                 for (const [id, newEvent] of newEvents) {
-                    const result = await processEvent(newEvent, EventStore.EventStream);
+                    const result = await processInsights(newEvent);
 
                     if (result) {
+                        await ackEventId(id);
                         await setLastProcessedEventId(id);
                     }
                 }
