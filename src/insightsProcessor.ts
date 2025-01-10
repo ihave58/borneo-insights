@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 
-import { checkAndClaimFailedEvents, getNewEvents } from './utils/eventUtils';
+import { getNewEvents } from './utils/eventUtils';
 import processInsights from './utils/processInsights';
 import { ackEventId, setLastProcessedEventId } from './utils/lastProcessedEvent';
 import { randomSleep } from './utils/sleep';
@@ -18,7 +18,8 @@ dotenv.config();
     const maxDelay = Number.isNaN(parsedMaxDelay) ? minDelay : parsedMaxDelay;
 
     if (consumerId == null) {
-        process.exit('consumer name is required.');
+        console.error('consumer name is required.');
+        process.exit(-1);
     }
 
     while (true) {
@@ -36,7 +37,7 @@ dotenv.config();
                     }
                 }
             } else {
-                console.log('Waiting for events...');
+                console.log('All events processed. waiting...');
             }
         } catch (error) {
             console.error(error);

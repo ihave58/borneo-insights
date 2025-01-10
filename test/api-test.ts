@@ -8,13 +8,14 @@ import readEventsFromFile from './utils/readEventsFromFile';
 import { writeMockEvents, readMockEvents } from './utils/mockEvents';
 import fetchInsights from './utils/fetchInsights';
 import generateMockEvents from './utils/generateMockEvents';
-import getTopVisitedPageId from './utils/getTopVisitedPageId';
+import getTopVisitedItemId from './utils/getTopVisitedItemId';
 import getTopAddToCartItemId from './utils/getTopAddToCartItemId';
 import getTopSoldItemId from './utils/getTopSoldItemId';
 
 import { StoreWindowSize, EventStore } from '../src/enums';
 import { Event } from '../src/types';
 import path from 'path';
+import getInsightsStatus from '../src/utils/getInsightsStatus';
 
 const sampleEventsPath = path.join(process.cwd(), './test/sample/events.jsonl');
 const mockEventsPath = path.join(process.cwd(), './test/sample/mock.jsonl');
@@ -46,8 +47,13 @@ describe('Tests for Events api', function () {
             equal(response.status, 200);
         }
 
-        console.log('Waiting for sample events to get processed...');
-        await sleep(sampleEvents.length * 20);
+        do {
+            console.log('Waiting for sample events to get processed...');
+            await sleep(1000);
+        } while (!(await getInsightsStatus()));
+
+        // console.log('Waiting for sample events to get processed...');
+        // await sleep(sampleEvents.length * 10);
     });
 
     it('should provide insights API', async function () {
@@ -61,9 +67,10 @@ describe('Tests for Events api', function () {
     it("should match the 'top visited' item", async function () {
         // const currentTimestamp = Date.now();
         const currentTimestamp = 1711497600000; // Wednesday, March 27, 2024 12:00:00 AM
-        const windowStartTimestamp = currentTimestamp - StoreWindowSize[EventStore.PageVisitItemIdSet];
+        const windowStartTimestamp =
+            currentTimestamp - StoreWindowSize[EventStore.PageVisitItemIdSet];
 
-        const topVisitedItemId = getTopVisitedPageId(sampleEvents, windowStartTimestamp);
+        const topVisitedItemId = getTopVisitedItemId(sampleEvents, windowStartTimestamp);
         const insights = await fetchInsights();
 
         // compare the manually computed insight with api response.
@@ -73,9 +80,13 @@ describe('Tests for Events api', function () {
     it("should match the 'top added to cart' item", async function () {
         // const currentTimestamp = Date.now();
         const currentTimestamp = 1711497600000; // Wednesday, March 27, 2024 12:00:00 AM
-        const windowStartTimestamp = currentTimestamp - StoreWindowSize[EventStore.PageVisitItemIdSet];
+        const windowStartTimestamp =
+            currentTimestamp - StoreWindowSize[EventStore.PageVisitItemIdSet];
 
-        const topAddToCartItemId = getTopAddToCartItemId(sampleEvents, windowStartTimestamp);
+        const topAddToCartItemId = getTopAddToCartItemId(
+            sampleEvents,
+            windowStartTimestamp,
+        );
         const insights = await fetchInsights();
 
         // compare the manually computed insight with api response.
@@ -85,7 +96,8 @@ describe('Tests for Events api', function () {
     it("should match the 'top sales' item", async function () {
         // const currentTimestamp = Date.now();
         const currentTimestamp = 1711497600000; // Wednesday, March 27, 2024 12:00:00 AM
-        const windowStartTimestamp = currentTimestamp - StoreWindowSize[EventStore.PageVisitItemIdSet];
+        const windowStartTimestamp =
+            currentTimestamp - StoreWindowSize[EventStore.PageVisitItemIdSet];
 
         const topSoldItemId = getTopSoldItemId(sampleEvents, windowStartTimestamp);
         const insights = await fetchInsights();
@@ -98,7 +110,8 @@ describe('Tests for Events api', function () {
         this.timeout(2 * 60 * 1000);
 
         const currentTimestamp = Date.now();
-        const windowStartTimestamp = currentTimestamp - StoreWindowSize[EventStore.PageVisitItemIdSet];
+        const windowStartTimestamp =
+            currentTimestamp - StoreWindowSize[EventStore.PageVisitItemIdSet];
 
         const mockEvents = generateMockEvents(
             2000,
@@ -120,20 +133,29 @@ describe('Tests for Events api', function () {
         writeMockEvents(mockEvents, mockEventsPath);
         equal(fs.existsSync(mockEventsPath), true);
 
-        console.log('Waiting for mock events to get processed...');
-        await sleep(mockEvents.length * 10);
+        do {
+            console.log('Waiting for sample events to get processed...');
+            await sleep(1000);
+        } while (!(await getInsightsStatus()));
+
+        // console.log('Waiting for mock events to get processed...');
+        // await sleep(mockEvents.length * 10);
     });
 
     it('should match the insights using mock data', async function () {
         const currentTimestamp = Date.now();
-        const windowStartTimestamp = currentTimestamp - StoreWindowSize[EventStore.PageVisitItemIdSet];
+        const windowStartTimestamp =
+            currentTimestamp - StoreWindowSize[EventStore.PageVisitItemIdSet];
 
         console.log('Reading mock events...');
         const mockEvents = readMockEvents(mockEventsPath);
         console.log('Reading mock events done. Total Events: ', mockEvents.length);
 
-        const topVisitedItemId = getTopVisitedPageId(mockEvents, windowStartTimestamp);
-        const topAddToCartItemId = getTopAddToCartItemId(mockEvents, windowStartTimestamp);
+        const topVisitedItemId = getTopVisitedItemId(mockEvents, windowStartTimestamp);
+        const topAddToCartItemId = getTopAddToCartItemId(
+            mockEvents,
+            windowStartTimestamp,
+        );
         const topSoldItemId = getTopSoldItemId(mockEvents, windowStartTimestamp);
 
         const insights = await fetchInsights();

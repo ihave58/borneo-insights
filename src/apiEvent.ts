@@ -13,22 +13,27 @@ dotenv.config();
         const app = express();
         app.use(express.json());
 
-        app.post('/api/event', async (request: Request<unknown, unknown, Event>, response: Response) => {
-            try {
-                const validationResult = EventSchema.validate(request.body);
+        app.post(
+            '/api/event',
+            async (request: Request<unknown, unknown, Event>, response: Response) => {
+                try {
+                    const validationResult = EventSchema.validate(request.body);
 
-                if (validationResult.error) {
-                    throw new Error(validationResult.error.message);
+                    if (validationResult.error) {
+                        throw new Error(validationResult.error.message);
+                    }
+
+                    await ingestEvent(validationResult.value, EventStore.EventStream);
+
+                    console.log('Event ingested:', validationResult.value);
+                    response.sendStatus(200);
+                } catch (error) {
+                    console.error(error);
+
+                    response.status(500).send(error);
                 }
-
-                await ingestEvent(validationResult.value, EventStore.EventStream);
-                response.sendStatus(200);
-            } catch (error) {
-                console.error(error);
-
-                response.status(500).send(error);
-            }
-        });
+            },
+        );
 
         app.get('/', (_req: Request, res: Response) => {
             res.send('Hello from Event Ingestion service...');

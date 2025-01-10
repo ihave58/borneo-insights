@@ -12,6 +12,7 @@
         "verify:mock": "ts-mocha test/*.ts -g 'should match the insights using mock data'",
         "start:prod": "node ./dist/index.js",
         "start:api": "ts-node --transpile-only src/apiServer.ts",
+        "start:event-generator": "ts-node --transpile-only src/eventGenerator.ts",
         "start:event-ingestion": "ts-node --transpile-only src/apiEvent.ts",
         "start:insights-processor": "ts-node --transpile-only src/insightsProcessor.ts",
         "lint": "eslint .",
@@ -25,7 +26,8 @@
     "description": "",
     "dependencies": {
         "express": "^4.21.2",
-        "redis": "^4.7.0"
+        "redis": "^4.7.0",
+        "mongodb": "^6.12.0"
     },
     "devDependencies": {
         "@types/express": "^5.0.0",

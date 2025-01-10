@@ -3,7 +3,8 @@ import { EventType } from '../../src/enums';
 import { Event } from '../../src/types';
 
 const round = (number: number, decimalCount = 2) =>
-    Math.round((number + Number.EPSILON) * Math.pow(10, decimalCount)) / Math.pow(10, decimalCount);
+    Math.round((number + Number.EPSILON) * Math.pow(10, decimalCount)) /
+    Math.pow(10, decimalCount);
 
 const getRandomNumber = (min: number, max: number, decimalCount = 0) => {
     return round(Math.random() * (max - min) + min, decimalCount);
@@ -11,7 +12,8 @@ const getRandomNumber = (min: number, max: number, decimalCount = 0) => {
 
 const eventTypes = Object.values(EventType);
 
-const getRandomElement = <T>(array: Array<T>): T => array[getRandomNumber(0, array.length - 1)];
+const getRandomElement = <T>(array: Array<T>): T =>
+    array[getRandomNumber(0, array.length - 1)];
 
 const generatePool = (size: number, generator: (index: number) => string) => {
     const pool = [];
@@ -23,8 +25,12 @@ const generatePool = (size: number, generator: (index: number) => string) => {
     return pool;
 };
 
-const generateMockEvents = (count: number, startTimestamp: number, duration: number): Array<Event> => {
-    const poolSize = getRandomNumber(0, Math.floor(count / 4));
+const generateMockEvents = (
+    count: number,
+    startTimestamp: number,
+    duration: number,
+): Array<Event> => {
+    const poolSize = getRandomNumber(1, Math.floor(count / 4)) || 1;
     const customerPool = generatePool(poolSize, () => faker.string.uuid());
     const itemPool = generatePool(poolSize, () => faker.string.uuid());
 
@@ -40,7 +46,9 @@ const generateMockEvents = (count: number, startTimestamp: number, duration: num
             item_id: getRandomElement(itemPool),
             event_type: eventType,
             price:
-                eventType === EventType.Purchase ? faker.number.float({ min: 10, max: 1000, fractionDigits: 2 }) : null,
+                eventType === EventType.Purchase
+                    ? faker.number.float({ min: 10, max: 1000, fractionDigits: 2 })
+                    : null,
         };
     };
 
@@ -50,3 +58,4 @@ const generateMockEvents = (count: number, startTimestamp: number, duration: num
 };
 
 export default generateMockEvents;
+export { getRandomNumber };

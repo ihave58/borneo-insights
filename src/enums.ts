@@ -6,7 +6,7 @@ enum EventType {
 
 enum EventStore {
     EventStream = 'EventStream',
-    LastProcessedEventId = 'LastProcessedEventId',
+    LastProcessedInsightsEventId = 'LastProcessedInsightsEventId',
 
     AddToCartItemIdSet = 'AddToCartItemIdSet',
     AddToCartItemIdToCountMap = 'AddToCartItemIdToCountMap',

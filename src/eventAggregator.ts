@@ -1,46 +1,29 @@
-import express, { type Request, type Response } from 'express';
 import dotenv from 'dotenv';
 
-import ingestEvent from './utils/ingestEvent';
-import { EventSchema } from './schemas/schemas';
-import { Event } from './types';
+import { getNewEvents } from './utils/eventUtils';
+import processInsights from './utils/processInsights';
+import { ackEventId, setLastProcessedEventId } from './utils/lastProcessedEvent';
 import { EventStore } from './enums';
 
 dotenv.config();
 
 (async () => {
     try {
-        const app = express();
-        app.use(express.json());
+        // await checkAndClaimFailedEvents(EventStore.EventStream, consumerId);
+        const newEvents = await getNewEvents(EventStore.EventStream, '');
 
-        app.post('/api/event', async (request: Request<unknown, unknown, Event>, response: Response) => {
-            try {
-                const validationResult = EventSchema.validate(request.body);
+        if (newEvents.length > 0) {
+            for (const [id, newEvent] of newEvents) {
+                const result = await processInsights(newEvent);
 
-                if (validationResult.error) {
-                    throw new Error(validationResult.error.message);
+                if (result) {
+                    await ackEventId(id);
+                    await setLastProcessedEventId(id);
                 }
-
-                await ingestEvent(request.body, EventStore.EventStream);
-                response.sendStatus(200);
-            } catch (error) {
-                console.error(error);
-
-                response.status(500).send(error);
             }
-        });
-
-        app.get('/', (_req: Request, res: Response) => {
-            res.send('Hello from Event Ingestion service...');
-        });
-
-        app.listen(process.env.INGESTION_SERVER_PORT, () => {
-            return console.log(
-                `Event Ingestion service is listening at http://localhost:${process.env.INGESTION_SERVER_PORT}`,
-            );
-        });
-
-        return app;
+        } else {
+            console.log('Waiting for events...');
+        }
     } catch (error) {
         console.error(error);
     }
