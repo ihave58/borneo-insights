@@ -11,7 +11,7 @@
         "load:mock": "ts-mocha test/*.ts -g 'should ingest mock events'",
         "verify:mock": "ts-mocha test/*.ts -g 'should match the insights using mock data'",
         "start:prod": "node ./dist/index.js",
-        "start:api": "ts-node --transpile-only src/apiServer.ts",
+        "start:api-insights": "ts-node --transpile-only src/apiInsights.ts",
         "start:event-generator": "ts-node --transpile-only src/eventGenerator.ts",
         "start:event-ingestor": "ts-node --transpile-only src/apiEvent.ts",
         "start:insights-processor": "ts-node --transpile-only src/insightsProcessor.ts",
