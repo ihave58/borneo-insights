@@ -68,7 +68,7 @@ const readEventsByConsumer = async (
 const checkAndClaimFailedEvents = async (streamKey: string, consumerId: string) => {
     const redisClient = getRedisClient();
 
-    const claimedEvents = await redisClient.xAutoClaim(
+    return await redisClient.xAutoClaim(
         streamKey,
         InsightsConsumerGroupName,
         consumerId,
@@ -78,8 +78,6 @@ const checkAndClaimFailedEvents = async (streamKey: string, consumerId: string) 
             COUNT: 1,
         },
     );
-
-    return claimedEvents;
 };
 
 const getNewEvents = async (
@@ -88,8 +86,8 @@ const getNewEvents = async (
 ): Promise<Array<[string, Event]>> => {
     const pendingEvents = await readEventsByConsumer(
         streamKey,
-        consumerId,
         InsightsConsumerGroupName,
+        consumerId,
         '0',
     );
     let newEvents: Array<[string, Event]> = pendingEvents;
