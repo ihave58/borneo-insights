@@ -1,10 +1,7 @@
-import { EventType } from '../../src/enums';
-import { Event } from '../../src/types';
+import { EventType } from '../enums';
+import { Event } from '../types';
 
-const getTopAddToCartItemId = (events: Array<Event>, startTimestamp: number) => {
-    const addToCartEvents = events.filter(
-        (event: Event) => event.event_type === EventType.AddToCart && event.timestamp >= startTimestamp,
-    );
+const getTopAddToCartItemId = (addToCartEvents: Array<Event<EventType.AddToCart>>) => {
     const itemIdToCountMap = new Map<string, number>();
 
     for (const event of addToCartEvents) {

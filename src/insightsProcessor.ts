@@ -1,8 +1,8 @@
 import dotenv from 'dotenv';
 
-import { getNewEvents } from './utils/eventUtils';
+import { getNewEvents } from './utils/eventHelper';
 import processInsights from './utils/processInsights';
-import { ackEventId, setLastProcessedEventId } from './utils/lastProcessedEvent';
+import { ackEventId, addToProcessedInsightList } from './utils/lastProcessedEvent';
 import { randomSleep } from './utils/sleep';
 import { EventStore } from './enums';
 
@@ -28,12 +28,12 @@ dotenv.config();
             const newEvents = await getNewEvents(EventStore.EventStream, consumerId);
 
             if (newEvents.length > 0) {
-                for (const [id, newEvent] of newEvents) {
+                for (const [eventId, newEvent] of newEvents) {
                     const result = await processInsights(newEvent);
 
                     if (result) {
-                        await ackEventId(id);
-                        await setLastProcessedEventId(id);
+                        await ackEventId(eventId);
+                        await addToProcessedInsightList(eventId);
                     }
                 }
             } else {

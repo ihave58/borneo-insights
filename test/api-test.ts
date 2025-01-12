@@ -8,11 +8,11 @@ import readEventsFromFile from './utils/readEventsFromFile';
 import { writeMockEvents, readMockEvents } from './utils/mockEvents';
 import fetchInsights from './utils/fetchInsights';
 import generateMockEvents from './utils/generateMockEvents';
-import getTopVisitedItemId from './utils/getTopVisitedItemId';
-import getTopAddToCartItemId from './utils/getTopAddToCartItemId';
-import getTopSoldItemId from './utils/getTopSoldItemId';
+import getTopVisitedItemId from '../src/utils/getTopVisitedItemId';
+import getTopAddToCartItemId from '../src/utils/getTopAddToCartItemId';
+import getTopSoldItemId from '../src/utils/getTopSoldItemId';
 
-import { StoreWindowSize, EventStore } from '../src/enums';
+import { StoreWindowSize, EventStore, EventType } from '../src/enums';
 import { Event } from '../src/types';
 import path from 'path';
 import getInsightsStatus from '../src/utils/getInsightsStatus';
@@ -70,7 +70,13 @@ describe('Tests for Events api', function () {
         const windowStartTimestamp =
             currentTimestamp - StoreWindowSize[EventStore.PageVisitItemIdSet];
 
-        const topVisitedItemId = getTopVisitedItemId(sampleEvents, windowStartTimestamp);
+        const pageVisitEvents = sampleEvents.filter(
+            (event: Event) =>
+                event.event_type === EventType.PageVisit &&
+                event.timestamp >= windowStartTimestamp,
+        ) as Array<Event<EventType.PageVisit>>;
+
+        const topVisitedItemId = getTopVisitedItemId(pageVisitEvents);
         const insights = await fetchInsights();
 
         // compare the manually computed insight with api response.
@@ -83,10 +89,13 @@ describe('Tests for Events api', function () {
         const windowStartTimestamp =
             currentTimestamp - StoreWindowSize[EventStore.PageVisitItemIdSet];
 
-        const topAddToCartItemId = getTopAddToCartItemId(
-            sampleEvents,
-            windowStartTimestamp,
-        );
+        const addToCartEvents = sampleEvents.filter(
+            (event: Event) =>
+                event.event_type === EventType.AddToCart &&
+                event.timestamp >= windowStartTimestamp,
+        ) as Array<Event<EventType.AddToCart>>;
+
+        const topAddToCartItemId = getTopAddToCartItemId(addToCartEvents);
         const insights = await fetchInsights();
 
         // compare the manually computed insight with api response.
@@ -99,7 +108,13 @@ describe('Tests for Events api', function () {
         const windowStartTimestamp =
             currentTimestamp - StoreWindowSize[EventStore.PageVisitItemIdSet];
 
-        const topSoldItemId = getTopSoldItemId(sampleEvents, windowStartTimestamp);
+        const purchaseEvents = sampleEvents.filter(
+            (event: Event) =>
+                event.event_type === EventType.Purchase &&
+                event.timestamp >= windowStartTimestamp,
+        ) as Array<Event<EventType.Purchase>>;
+
+        const topSoldItemId = getTopSoldItemId(purchaseEvents);
         const insights = await fetchInsights();
 
         // compare the manually computed insight with api response.
@@ -151,12 +166,27 @@ describe('Tests for Events api', function () {
         const mockEvents = readMockEvents(mockEventsPath);
         console.log('Reading mock events done. Total Events: ', mockEvents.length);
 
-        const topVisitedItemId = getTopVisitedItemId(mockEvents, windowStartTimestamp);
-        const topAddToCartItemId = getTopAddToCartItemId(
-            mockEvents,
-            windowStartTimestamp,
-        );
-        const topSoldItemId = getTopSoldItemId(mockEvents, windowStartTimestamp);
+        const mockPageVisitEvents = mockEvents.filter(
+            (event: Event) =>
+                event.event_type === EventType.PageVisit &&
+                event.timestamp >= windowStartTimestamp,
+        ) as Array<Event<EventType.PageVisit>>;
+
+        const mockAddToCartEvents = mockEvents.filter(
+            (event: Event) =>
+                event.event_type === EventType.AddToCart &&
+                event.timestamp >= windowStartTimestamp,
+        ) as Array<Event<EventType.AddToCart>>;
+
+        const mockPurchaseEvents = mockEvents.filter(
+            (event: Event) =>
+                event.event_type === EventType.Purchase &&
+                event.timestamp >= windowStartTimestamp,
+        ) as Array<Event<EventType.Purchase>>;
+
+        const topVisitedItemId = getTopVisitedItemId(mockPageVisitEvents);
+        const topAddToCartItemId = getTopAddToCartItemId(mockAddToCartEvents);
+        const topSoldItemId = getTopSoldItemId(mockPurchaseEvents);
 
         const insights = await fetchInsights();
 

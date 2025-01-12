@@ -1,10 +1,7 @@
-import { EventType } from '../../src/enums';
-import { Event } from '../../src/types';
+import { EventType } from '../enums';
+import { Event } from '../types';
 
-const getTopSoldItemId = (events: Array<Event>, startTimestamp: number) => {
-    const purchaseEvents = events.filter(
-        (event: Event) => event.event_type === EventType.Purchase && event.timestamp >= startTimestamp,
-    );
+const getTopSoldItemId = (purchaseEvents: Array<Event<EventType.Purchase>>) => {
     const itemIdToSalesMap = new Map<string, number>();
 
     for (const event of purchaseEvents) {

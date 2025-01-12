@@ -1,16 +1,28 @@
 import getRedisClient from './getRedisClient';
 import { EventStore, InsightsConsumerGroupName } from '../enums';
 
-const getLastProcessedEventId = async () => {
+const isInsightProcessed = async (eventId: string) => {
     const redisClient = getRedisClient();
 
-    return await redisClient.get(EventStore.LastProcessedInsightsEventId);
+    return await redisClient.sIsMember(EventStore.InsightProcessedEventIdSet, eventId);
 };
 
-const setLastProcessedEventId = async (eventId: string) => {
+const addToProcessedInsightList = async (eventId: string) => {
     const redisClient = getRedisClient();
 
-    await redisClient.set(EventStore.LastProcessedInsightsEventId, eventId);
+    await redisClient.sAdd(EventStore.InsightProcessedEventIdSet, eventId);
+};
+
+const getAggregatedEventIds = async () => {
+    const redisClient = getRedisClient();
+
+    return await redisClient.get(EventStore.AggregatedInsightsEventIdSet);
+};
+
+const addToAggregatedEventList = async (eventIds: Array<string>) => {
+    const redisClient = getRedisClient();
+
+    await redisClient.sAdd(EventStore.AggregatedInsightsEventIdSet, eventIds);
 };
 
 const ackEventId = async (eventId: string) => {
@@ -19,4 +31,10 @@ const ackEventId = async (eventId: string) => {
     await redisClient.xAck(EventStore.EventStream, InsightsConsumerGroupName, eventId);
 };
 
-export { getLastProcessedEventId, setLastProcessedEventId, ackEventId };
+export {
+    isInsightProcessed,
+    getAggregatedEventIds,
+    addToProcessedInsightList,
+    addToAggregatedEventList,
+    ackEventId,
+};

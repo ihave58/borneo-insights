@@ -1,12 +1,7 @@
-import { EventType } from '../../src/enums';
-import { Event } from '../../src/types';
+import { EventType } from '../enums';
+import { Event } from '../types';
 
-const getTopVisitedItemId = (events: Array<Event>, startTimestamp: number) => {
-    const pageVisitEvents = events.filter(
-        (event: Event) =>
-            event.event_type === EventType.PageVisit && event.timestamp >= startTimestamp,
-    );
-
+const getTopVisitedItemId = (pageVisitEvents: Array<Event<EventType.PageVisit>>) => {
     const itemIdToCountMap = new Map<string, number>();
 
     for (const event of pageVisitEvents) {

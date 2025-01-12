@@ -6,7 +6,8 @@ enum EventType {
 
 enum EventStore {
     EventStream = 'EventStream',
-    LastProcessedInsightsEventId = 'LastProcessedInsightsEventId',
+    InsightProcessedEventIdSet = 'InsightProcessedEventIdSet',
+    AggregatedInsightsEventIdSet = 'AggregatedInsightsEventIdSet',
 
     AddToCartItemIdSet = 'AddToCartItemIdSet',
     AddToCartItemIdToCountMap = 'AddToCartItemIdToCountMap',
@@ -20,8 +21,14 @@ enum EventStore {
 
 enum InsightsStore {
     TopAddToCardItemId = 'TopAddToCardItemId',
-    TopPageVisitItemId = 'TopPageVisitItemId',
+    TopVisitedItemId = 'TopVisitedItemId',
     TopSoldItemId = 'TopSoldItemId',
+}
+
+enum HistoricInsightsStore {
+    TopAddToCartStore = 'TopAddToCartStore',
+    TopVisitedItemStore = 'TopVisitedItemStore',
+    TopSoldItemStore = 'TopSoldItemStore',
 }
 
 // const StoreWindowSize = {
@@ -42,6 +49,7 @@ export {
     EventType,
     EventStore,
     InsightsStore,
+    HistoricInsightsStore,
     StoreWindowSize,
     InsightsConsumerGroupName,
 };

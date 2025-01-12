@@ -1,5 +1,5 @@
 import { Event, EventPriceAsString } from '../types';
-import { InsightsConsumerGroupName } from '../enums';
+import { EventStore, InsightsConsumerGroupName } from '../enums';
 import getRedisClient from './getRedisClient';
 
 const mapToEvent = (eventPriceAsString: EventPriceAsString): Event => {
@@ -24,24 +24,26 @@ const mapToEvent = (eventPriceAsString: EventPriceAsString): Event => {
     }
 };
 
-const readEvents = async (
+const readEventsByConsumer = async (
     streamKey: string,
+    groupName: string,
     consumerId: string,
-    pending: boolean,
+    lastId: string = '>',
+    count: number = 1,
 ): Promise<Array<[string, Event]>> => {
     let events: Array<[string, Event]> = [];
 
     const redisClient = getRedisClient();
 
     const response = await redisClient.xReadGroup(
-        InsightsConsumerGroupName,
+        groupName,
         consumerId,
         {
             key: streamKey,
-            id: pending ? '0' : '>',
+            id: lastId,
         },
         {
-            COUNT: 1,
+            COUNT: count,
         },
     );
 
@@ -84,23 +86,71 @@ const getNewEvents = async (
     streamKey: string,
     consumerId: string,
 ): Promise<Array<[string, Event]>> => {
-    const pendingEvents = await readEvents(streamKey, consumerId, true);
+    const pendingEvents = await readEventsByConsumer(
+        streamKey,
+        consumerId,
+        InsightsConsumerGroupName,
+        '0',
+    );
+    let newEvents: Array<[string, Event]> = pendingEvents;
 
     if (pendingEvents.length === 0) {
         const claimedResult = await checkAndClaimFailedEvents(streamKey, consumerId);
         console.log(`${consumerId} claiming:`, claimedResult.messages);
 
-        const claimedPendingEvents = await readEvents(streamKey, consumerId, true);
+        const claimedPendingEvents = await readEventsByConsumer(
+            streamKey,
+            InsightsConsumerGroupName,
+            consumerId,
+            '0',
+        );
+
         if (claimedPendingEvents.length === 0) {
             console.log(`${consumerId} claimed:`, claimedPendingEvents);
 
-            return await readEvents(streamKey, consumerId, false);
+            newEvents = await readEventsByConsumer(
+                streamKey,
+                InsightsConsumerGroupName,
+                consumerId,
+            );
         }
 
-        return claimedPendingEvents;
+        newEvents = claimedPendingEvents;
     }
 
-    return pendingEvents;
+    return newEvents;
 };
 
-export { getNewEvents, checkAndClaimFailedEvents };
+const getEventsByTimestamp = async (
+    endTimestamp: string,
+    startTimestamp: string = '-',
+): Promise<Array<[string, Event]>> => {
+    let events: Array<[string, Event]> = [];
+
+    const redisClient = getRedisClient();
+
+    const response = await redisClient.xRange(
+        EventStore.EventStream,
+        startTimestamp,
+        endTimestamp,
+    );
+
+    // console.log('response:', response);
+
+    if (response != null && Array.isArray(response)) {
+        events = response.map(({ id, message }) => [
+            id,
+            mapToEvent(message as EventPriceAsString),
+        ]);
+    }
+
+    return events;
+};
+
+const getEventStreamInfo = async () => {
+    const redisClient = getRedisClient();
+
+    return await redisClient.xInfoStream(EventStore.EventStream);
+};
+
+export { getEventsByTimestamp, getNewEvents, getEventStreamInfo, checkAndClaimFailedEvents };

@@ -2,11 +2,13 @@ import getRedisClient from './getRedisClient';
 import type { Event } from '../types';
 import { EventType, EventStore, InsightsStore, StoreWindowSize } from '../enums';
 
+const redisClient = getRedisClient();
+
 const processAddToCartInsight = async (event: Event<EventType.AddToCart>) => {
-    const redisClient = getRedisClient();
     const currentTimestamp = Date.now();
     // const currentTimestamp = 1711497600000; // Wednesday, March 27, 2024 12:00:00 AM
-    const windowStartTimestamp = currentTimestamp - StoreWindowSize[EventStore.AddToCartItemIdSet];
+    const windowStartTimestamp =
+        currentTimestamp - StoreWindowSize[EventStore.AddToCartItemIdSet];
 
     const expiredAddToCartItemIds = await redisClient.zRangeByScore(
         EventStore.AddToCartItemIdSet,
@@ -18,14 +20,24 @@ const processAddToCartInsight = async (event: Event<EventType.AddToCart>) => {
         await redisClient.hIncrBy(EventStore.AddToCartItemIdToCountMap, itemId, -1);
     }
 
-    await redisClient.zAdd(EventStore.AddToCartItemIdSet, { score: event.timestamp, value: event.item_id });
-    const newItemCount = await redisClient.hIncrBy(EventStore.AddToCartItemIdToCountMap, event.item_id, 1);
+    await redisClient.zAdd(EventStore.AddToCartItemIdSet, {
+        score: event.timestamp,
+        value: event.item_id,
+    });
+    const newItemCount = await redisClient.hIncrBy(
+        EventStore.AddToCartItemIdToCountMap,
+        event.item_id,
+        1,
+    );
     let topAddToCartItemId = await redisClient.get(InsightsStore.TopAddToCardItemId);
 
     if (topAddToCartItemId == null) {
         topAddToCartItemId = event.item_id;
     } else {
-        const topPageVisitItemCount = await redisClient.hGet(EventStore.AddToCartItemIdToCountMap, topAddToCartItemId);
+        const topPageVisitItemCount = await redisClient.hGet(
+            EventStore.AddToCartItemIdToCountMap,
+            topAddToCartItemId,
+        );
 
         if (newItemCount > Number(topPageVisitItemCount)) {
             topAddToCartItemId = event.item_id;
@@ -44,10 +56,10 @@ const processAddToCartInsight = async (event: Event<EventType.AddToCart>) => {
 };
 
 const processPurchaseInsight = async (event: Event<EventType.Purchase>) => {
-    const redisClient = getRedisClient();
     const currentTimestamp = Date.now();
     // const currentTimestamp = 1711497600000; // Wednesday, March 27, 2024 12:00:00 AM
-    const windowStartTimestamp = currentTimestamp - StoreWindowSize[EventStore.HighestSoldItemIdSet];
+    const windowStartTimestamp =
+        currentTimestamp - StoreWindowSize[EventStore.HighestSoldItemIdSet];
     const eventPrice = Math.round(event.price! * 100);
 
     const expiredPurchasedItemIds = await redisClient.zRangeByScore(
@@ -57,18 +69,32 @@ const processPurchaseInsight = async (event: Event<EventType.Purchase>) => {
     );
 
     for (const expiredItemId of expiredPurchasedItemIds) {
-        await redisClient.hIncrBy(EventStore.HighestSoldItemIdToSalesMap, expiredItemId, -eventPrice);
+        await redisClient.hIncrBy(
+            EventStore.HighestSoldItemIdToSalesMap,
+            expiredItemId,
+            -eventPrice,
+        );
     }
 
-    await redisClient.zAdd(EventStore.HighestSoldItemIdSet, { score: event.timestamp, value: event.item_id });
+    await redisClient.zAdd(EventStore.HighestSoldItemIdSet, {
+        score: event.timestamp,
+        value: event.item_id,
+    });
 
-    const newItemCount = await redisClient.hIncrBy(EventStore.HighestSoldItemIdToSalesMap, event.item_id, eventPrice);
+    const newItemCount = await redisClient.hIncrBy(
+        EventStore.HighestSoldItemIdToSalesMap,
+        event.item_id,
+        eventPrice,
+    );
     let topSoldItemId = await redisClient.get(InsightsStore.TopSoldItemId);
 
     if (topSoldItemId == null) {
         topSoldItemId = event.item_id;
     } else {
-        const topPageVisitItemCount = await redisClient.hGet(EventStore.HighestSoldItemIdToSalesMap, topSoldItemId);
+        const topPageVisitItemCount = await redisClient.hGet(
+            EventStore.HighestSoldItemIdToSalesMap,
+            topSoldItemId,
+        );
 
         if (newItemCount > Number(topPageVisitItemCount)) {
             topSoldItemId = event.item_id;
@@ -80,17 +106,21 @@ const processPurchaseInsight = async (event: Event<EventType.Purchase>) => {
     }
 
     await redisClient.set(InsightsStore.TopSoldItemId, topSoldItemId);
-    await redisClient.zRemRangeByScore(EventStore.HighestSoldItemIdSet, 0, windowStartTimestamp);
+    await redisClient.zRemRangeByScore(
+        EventStore.HighestSoldItemIdSet,
+        0,
+        windowStartTimestamp,
+    );
     // await redisClient.xTrim(EventStore.EventStream, 'MINID', windowStartTimestamp);
 
     return true;
 };
 
 const processPageVisitInsight = async (event: Event<EventType.PageVisit>) => {
-    const redisClient = getRedisClient();
     const currentTimestamp = Date.now();
     // const currentTimestamp = 1711497600000; // Wednesday, March 27, 2024 12:00:00 AM
-    const windowStartTimestamp = currentTimestamp - StoreWindowSize[EventStore.PageVisitItemIdSet];
+    const windowStartTimestamp =
+        currentTimestamp - StoreWindowSize[EventStore.PageVisitItemIdSet];
 
     const expiredPageVisitItemIds = await redisClient.zRangeByScore(
         EventStore.PageVisitItemIdSet,
@@ -102,14 +132,24 @@ const processPageVisitInsight = async (event: Event<EventType.PageVisit>) => {
         await redisClient.hIncrBy(EventStore.PageVisitItemIdToCountMap, itemId, -1);
     }
 
-    await redisClient.zAdd(EventStore.PageVisitItemIdSet, { score: event.timestamp, value: event.item_id });
-    const newItemCount = await redisClient.hIncrBy(EventStore.PageVisitItemIdToCountMap, event.item_id, 1);
-    let topPageVisitItemId = await redisClient.get(InsightsStore.TopPageVisitItemId);
+    await redisClient.zAdd(EventStore.PageVisitItemIdSet, {
+        score: event.timestamp,
+        value: event.item_id,
+    });
+    const newItemCount = await redisClient.hIncrBy(
+        EventStore.PageVisitItemIdToCountMap,
+        event.item_id,
+        1,
+    );
+    let topPageVisitItemId = await redisClient.get(InsightsStore.TopVisitedItemId);
 
     if (topPageVisitItemId == null) {
         topPageVisitItemId = event.item_id;
     } else {
-        const topPageVisitItemCount = await redisClient.hGet(EventStore.PageVisitItemIdToCountMap, topPageVisitItemId);
+        const topPageVisitItemCount = await redisClient.hGet(
+            EventStore.PageVisitItemIdToCountMap,
+            topPageVisitItemId,
+        );
 
         if (Number(newItemCount) > Number(topPageVisitItemCount)) {
             topPageVisitItemId = event.item_id;
@@ -120,7 +160,7 @@ const processPageVisitInsight = async (event: Event<EventType.PageVisit>) => {
         }
     }
 
-    await redisClient.set(InsightsStore.TopPageVisitItemId, topPageVisitItemId);
+    await redisClient.set(InsightsStore.TopVisitedItemId, topPageVisitItemId);
     await redisClient.zRemRangeByScore(EventStore.PageVisitItemIdSet, 0, windowStartTimestamp);
     // await redisClient.xTrim(EventStore.EventStream, 'MINID', windowStartTimestamp);
 
